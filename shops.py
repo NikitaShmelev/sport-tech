@@ -76,8 +76,32 @@ class FamilyBoardshop():
             containers += page_doc.find_all("div", class_="border-0 rounded-0 h-100 product-card")
             break
         for container in containers:
-            print(container)
-            break
+            # get title 
+            link = container.find('a').get('href')
+            title = container.find('img').get('alt').strip()
+            # price = container.find_all('span')
+            price = None
+            
+            # print(type(container))
+            if price:
+                print(title, link, price)
+            else:
+                doc = get_page_doc(link)
+                prices = doc.find('div', class_='p-price h2').text.strip()
+                prices = prices.split(' ')
+                result = []
+                for item in prices:
+                    try:
+                        if int(item[0]):
+                            result.append(item)
+                    except ValueError :
+                        for letter in enumerate(item):
+                            if letter[1] in ['1', '2', '3', '4', '5', '6', '7', '8', '9']:
+                                result.append(item[letter[0]:-1])
+                                break
+                    
+            print(title, link, result)
+            # break
 
 class Stihiya:
 
