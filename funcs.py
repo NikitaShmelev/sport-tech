@@ -14,3 +14,12 @@ def get_page_doc(page_url):
     page = urlopen(req)
     soup = BeautifulSoup(page, 'lxml')
     return soup
+
+
+# chromedriver = '/home/nshmelyov/.wdm/drivers/chromedriver/linux64/84.0.4147.30/chromedriver'
+#     options = webdriver.ChromeOptions()
+#     options.add_argument('headless')  # для открытия headless-браузера
+#     browser = webdriver.Chrome(executable_path=chromedriver, chrome_options=options)
+#     browser.get(page_url)
+#     requiredHtml = browser.page_source
+#     soup = BeautifulSoup(requiredHtml, 'html5lib')

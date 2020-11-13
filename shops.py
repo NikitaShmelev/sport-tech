@@ -10,6 +10,7 @@ from openpyxl import Workbook, load_workbook
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 
+
 class FamilyBoardshop():
 
 
@@ -46,11 +47,9 @@ class FamilyBoardshop():
         
 
         for key in categories.keys():
-            print(categories[key])
+            print(key, '\n\n')
             self.parse_category(categories[key])
-            # print(page_doc)
             break
-            # driver.get(categories[key])
         return True
     
     def __get_pages_links__(self, url):
@@ -59,6 +58,7 @@ class FamilyBoardshop():
             i.find_all('a') for i in page_doc.find_all("ul", class_="pagination")
             ]
         result = list()
+        result.append(url)
         for i in pages_links:
             for j in i:
                 result.append(j.get('href'))
@@ -74,35 +74,39 @@ class FamilyBoardshop():
         for link in pages_links:
             page_doc = get_page_doc(link)
             containers += page_doc.find_all("div", class_="border-0 rounded-0 h-100 product-card")
-            break
+            # break
         for container in containers:
-            # get title 
             link = container.find('a').get('href')
             title = container.find('img').get('alt').strip()
-            # price = container.find_all('span')
-            price = None
             
-            # print(type(container))
-            if price:
-                print(title, link, price)
+            doc = get_page_doc(link)
+            prices = doc.find('div', class_='p-price h2').text.strip()
+            prices = prices.split(' ')
+            if len(prices) == 1:
+                print(
+                    '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+                )
+            elif len(prices) == 2:
+                prices[0] = prices[0].replace('BYN', '') + prices[1]
+                del prices[1]
+            elif len(prices) == 3:
+                prices[0] += 'BYN'
+                prices[1] = prices[1].replace("\t", "").replace("\n", "").replace('\xa0\xa0','').replace('BYN','') + 'BYN'
+                del prices[2]
+            elif len(prices) == 4:                
+                prices[0] += 'BYN'
+                prices[1] = prices[1].replace("\t", "").replace("\n", "").replace('\xa0\xa0','').replace('BYN','') + prices[2] + 'BYN'
+                del prices[2]
+                del prices[2]
             else:
-                doc = get_page_doc(link)
-                prices = doc.find('div', class_='p-price h2').text.strip()
-                prices = prices.split(' ')
-                result = []
-                for item in prices:
-                    try:
-                        if int(item[0]):
-                            result.append(item)
-                    except ValueError :
-                        for letter in enumerate(item):
-                            if letter[1] in ['1', '2', '3', '4', '5', '6', '7', '8', '9']:
-                                result.append(item[letter[0]:-1])
-                                break
-                    
-            print(title, link, result)
-            # break
-
+               
+                prices[0] += prices[1]
+                prices[2] = prices[2].replace("\t", "").replace("\n", "").replace('\xa0\xa0','').replace('BYN','') + prices[3] + 'BYN'
+                del prices[1]
+                del prices[3]
+                del prices[2]
+               
+            print(f"\n\n{title=}\n{link=}\n{prices=}\n")
 class Stihiya:
 
     def __init__(self):

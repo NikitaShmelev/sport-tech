@@ -3,3 +3,5 @@ openpyxl
 xlwt
 requests
 lxml
+selenium
+html5lib
