@@ -10,7 +10,6 @@ def get_page_doc(page_url):
     req = Request(site, headers=hdr)
     page = urlopen(req)
     soup = BeautifulSoup(page, 'lxml')
-
     return soup
 
 def get_categories_stihiya(page_doc):

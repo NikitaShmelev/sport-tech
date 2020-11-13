@@ -122,7 +122,7 @@ def main():
         read_timeout=1.0,
 	    )
     bot = Bot(
-        # request=request,
+        request=request,
         token='1468659694:AAGQQAo6QddW9E_TK5efCtdu8D6D19e-pxk',
         )
     updater = Updater(
