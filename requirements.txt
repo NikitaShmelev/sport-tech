@@ -3,5 +3,6 @@ openpyxl
 xlwt
 requests
 lxml
-selenium
+xlsxwriter
 html5lib
+python-telegram-bot
