@@ -89,6 +89,5 @@ def parse_category_stihiya(url):
             del prices[1]
             del prices[3]
             del prices[2]
-        print(f"\n\n{title=}\n{prices=}\n{link=}\n")
         result.append([title, prices, link])
     return result

@@ -70,7 +70,10 @@ def get_text(update: Update, context: CallbackContext):
 
                 result = parse_category_stihiya(users[chat_id].categories[text_data])
                 users[chat_id].start_parse = False
-                file_name = f'{text_data} {datetime.date.today()}.xlsx'
+
+                # file_name = f'{text_data} {datetime.date.today()}.xlsx' # if python >= 3.8
+                file_name = text_data + str(datetime.date.today()) + '.xlsx'
+
                 workbook = xlsxwriter.Workbook(file_name)
                 worksheet = workbook.add_worksheet()
                 worksheet.write(0, 0, 'Title')
@@ -92,7 +95,8 @@ def get_text(update: Update, context: CallbackContext):
                     worksheet.write(row, col + 3, record[2])
                     row += 1
                 workbook.close()
-                file = open(f'{file_name}', 'rb')
+                # file = open(f'{file_name}', 'rb') # if python >= 3.8
+                file = open(file_name, 'rb') 
                 update.effective_chat.bot.send_document(
                     chat_id=chat_id,
                     text='Enjoi',
