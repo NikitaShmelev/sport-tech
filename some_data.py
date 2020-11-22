@@ -4,6 +4,8 @@ class User():
         self.selected_shop = None
         self.categories = dict()
         self.start_parse = False
+        self.selected_category = None
+        self.categories = dict()
 
 
 shops = {

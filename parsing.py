@@ -5,17 +5,22 @@ from urllib.request import Request, urlopen
 
 
 def get_page_doc(page_url):
-    site = page_url
     hdr = {'User-Agent': 'Mozilla/5.0'}
-    req = Request(site, headers=hdr)
+    # proxies = {"http": "http://10.10.1.10:3128",
+                # "https": "http://10.10.1.10:1080"}
+    # req.get(page_url, headers=hdr, proxies=proxies)
+    # print("FUCK")
+    req = Request(page_url, headers=hdr)
     page = urlopen(req)
     soup = BeautifulSoup(page, 'lxml')
     return soup
 
 def get_categories_stihiya(page_doc):
     result = dict()
-    categories = page_doc.find_all("a", class_="dropdown-item")
-
+    categories = page_doc.find_all("a", class_="nav-link dropdown-toggle text-uppercase font-weight-bold")
+    del categories[-1]
+    categories.append(page_doc.find("a", class_='nav-link text-uppercase font-weight-bold'))
+    
     for i in categories:
         category_name = i.text.strip()
         skip_list = [
@@ -23,11 +28,15 @@ def get_categories_stihiya(page_doc):
             'Реквизиты', 'Преимущества', 'Таблица размеров', 'Обратная связь',
             'Контакты', 'Регистрация', 'Авторизация', 'Показать все', 'Доставка и оплата'
             ]
-        
         if category_name not in skip_list:
-            result[category_name] = i.get('href')
-        result['Сноуборды'] = 'https://shop.wakepark.by/snowboarding/snowboards/'
-
+            url = i.get('href')
+            doc = get_page_doc(url)
+            sub_result = doc.find_all('a', class_='btn btn-light bg-white rounded-0 text-uppercase font-weight-bold px-3 py-2 mx-2 mb-3')
+            """Searching for sub_cagories object in row above. Result contains tag <a>."""
+            links_to_subcategories = [i.get('href') for i in sub_result]
+            titles = [i.text.strip() for i in sub_result] # get titles of categories
+            result[category_name] = dict(zip(titles, links_to_subcategories))
+    
     return result
 
 
