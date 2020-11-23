@@ -108,7 +108,6 @@ def get_text(update: Update, context: CallbackContext):
                 # file = open(file_name, 'rb')
                 update.effective_chat.bot.send_document(
                     chat_id=chat_id,
-                    text='Enjoi',
                     document=file,
                     reply_markup=available_categories_keyboard(users[chat_id].categories),
                 )
