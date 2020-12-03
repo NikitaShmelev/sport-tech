@@ -66,7 +66,10 @@ def parse_category_stihiya(url):
         title = container.find('img').get('alt').strip()
         if title == 'Скидочная карта SHOP.WAKEPARK.BY':
             continue
-        doc = get_page_doc(link)
+        try:
+            doc = get_page_doc(link)
+        except:
+            continue
         prices = doc.find('div', class_='p-price h2').text.strip()
         prices = prices.split(' ')
         if len(prices) == 2:
@@ -98,4 +101,5 @@ def parse_category_stihiya(url):
             del prices[3]
             del prices[2]
         result.append([title, prices, link])
+        print(title, prices, link)
     return result
