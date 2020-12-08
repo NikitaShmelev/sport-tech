@@ -16,11 +16,16 @@ def available_shops_keyboard():
     )
 
 
-def available_categories_keyboard(categories):
+def available_categories_keyboard(categories, check_choice):
 
     keyboard = [
         [KeyboardButton(i)] for i in categories.keys()
     ]
+    if check_choice:
+        keyboard.append(
+            [KeyboardButton('ALL CATEGORY')]
+        )
+    
     return ReplyKeyboardMarkup(
         keyboard=keyboard,
         resize_keyboard=True,

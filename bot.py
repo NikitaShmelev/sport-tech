@@ -59,15 +59,56 @@ def get_text(update: Update, context: CallbackContext):
                 users[chat_id].categories = get_categories_stihiya(page_doc)
                 update.effective_chat.send_message(
                     text='Select category',
-                    reply_markup=available_categories_keyboard(users[chat_id].categories)
+                    reply_markup=available_categories_keyboard(users[chat_id].categories, True if users[chat_id].selected_category else False)
                 )
             elif text_data in users[chat_id].categories.keys():
                 users[chat_id].selected_category = text_data
                 update.effective_chat.send_message(
                     text='Select something',
-                    reply_markup=available_categories_keyboard(users[chat_id].categories[text_data])
+                    reply_markup=available_categories_keyboard(users[chat_id].categories[text_data], True if users[chat_id].selected_category else False),
                 )
-            
+            elif text_data == 'ALL CATEGORY':
+                update.effective_chat.send_message(
+                    text='So be it. Please w8 some time, you can drink coffee. '
+                        'I will send result soonest as possible.',
+                    reply_markup=ReplyKeyboardRemove()
+                )
+                selected_category = users[chat_id].selected_category
+
+                file_name = f'{selected_category}(FULL)_{datetime.date.today()}.xlsx' # if python >= 3.8
+                workbook = xlsxwriter.Workbook(file_name)
+                worksheet = workbook.add_worksheet()
+                worksheet.write(0, 0, 'Category')
+                worksheet.write(0, 1, 'Title')
+                worksheet.write(0, 2, 'New price')
+                worksheet.write(0, 3, 'Old price')
+                worksheet.write(0, 4, 'Page url')
+                row = 1
+                col = 0
+                
+                for category in users[chat_id].categories[selected_category]:
+                    print(category, '\n\n')
+                    result = parse_category_stihiya(users[chat_id].categories[selected_category][category])
+                    
+                    for record in result:
+                        worksheet.write(row, col, category)
+                        worksheet.write(row, col + 1, record[0])
+                        if len(record[1]) == 2:
+                            worksheet.write(row, col + 2, record[1][0])
+                            worksheet.write(row, col + 3, record[1][1])
+                        else:
+                            worksheet.write(row, col + 2, record[1][0])
+                        worksheet.write(row, col + 4, record[2])
+                        row += 1
+                workbook.close()
+                file = open(f'{file_name}', 'rb') # if python >= 3.8
+                update.effective_chat.bot.send_document(
+                    chat_id=chat_id,
+                    document=file,
+                    reply_markup=available_categories_keyboard(users[chat_id].categories, True if users[chat_id].selected_category else False),
+                )
+                file.close()
+                os.remove(file_name)
             elif text_data in users[chat_id].categories[users[chat_id].selected_category].keys():
                 users[chat_id].start_parse = True
                 update.effective_chat.send_message(
@@ -80,8 +121,7 @@ def get_text(update: Update, context: CallbackContext):
                 result = parse_category_stihiya(users[chat_id].categories[users[chat_id].selected_category][text_data])
                 users[chat_id].start_parse = False
 
-                file_name = f'{text_data} {datetime.date.today()}.xlsx' # if python >= 3.8
-                # file_name = text_data + str(datetime.date.today()) + '.xlsx'
+                file_name = f'{text_data}_{datetime.date.today()}.xlsx' # if python >= 3.8
 
                 workbook = xlsxwriter.Workbook(file_name)
                 worksheet = workbook.add_worksheet()
@@ -105,16 +145,14 @@ def get_text(update: Update, context: CallbackContext):
                     row += 1
                 workbook.close()
                 file = open(f'{file_name}', 'rb') # if python >= 3.8
-                # file = open(file_name, 'rb')
                 update.effective_chat.bot.send_document(
                     chat_id=chat_id,
                     document=file,
-                    reply_markup=available_categories_keyboard(users[chat_id].categories),
+                    reply_markup=available_categories_keyboard(users[chat_id].categories, True if users[chat_id].selected_category else False),
                 )
                 file.close()
                 os.remove(file_name)
                 print(time.time() - start_time, 'result time')
-
             else:
                 return do_start(update, context)
         else:
