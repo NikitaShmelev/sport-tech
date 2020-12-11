@@ -21,7 +21,11 @@ def available_categories_keyboard(categories, check_choice):
     keyboard = [
         [KeyboardButton(i)] for i in categories.keys()
     ]
+    
+    keyboard.insert(0, [KeyboardButton('BACK')])
+
     if check_choice:
+        
         keyboard.append(
             [KeyboardButton('ALL CATEGORY')]
         )

@@ -61,8 +61,31 @@ def get_text(update: Update, context: CallbackContext):
                     text='Select category',
                     reply_markup=available_categories_keyboard(users[chat_id].categories, True if users[chat_id].selected_category else False)
                 )
+            elif text_data == 'BACK':
+                if users[chat_id].selected_sub_category:
+                    users[chat_id].selected_sub_category = False
+                    users[chat_id].selected_category == None
+                    update.effective_chat.send_message(
+                        text='Select category',
+                        reply_markup=available_categories_keyboard(users[chat_id].categories, True if users[chat_id].selected_category else False)
+                    )
+                elif users[chat_id].selected_category:
+                    users[chat_id].selected_category == None
+                    print(users[chat_id].selected_category)
+                    update.effective_chat.send_message(
+                        text='Select shop',
+                        reply_markup=available_shops_keyboard()
+                        )
+                elif users[chat_id].selected_category == None:
+                    users[chat_id].selected_category == None
+                    update.effective_chat.send_message(
+                        text='Select category',
+                        reply_markup=available_categories_keyboard(users[chat_id].categories, True if users[chat_id].selected_category else False)
+                    )
+                    
             elif text_data in users[chat_id].categories.keys():
                 users[chat_id].selected_category = text_data
+                users[chat_id].selected_sub_category = True
                 update.effective_chat.send_message(
                     text='Select something',
                     reply_markup=available_categories_keyboard(users[chat_id].categories[text_data], True if users[chat_id].selected_category else False),
@@ -111,6 +134,7 @@ def get_text(update: Update, context: CallbackContext):
                 os.remove(file_name)
             elif text_data in users[chat_id].categories[users[chat_id].selected_category].keys():
                 users[chat_id].start_parse = True
+                users[chat_id].selected_sub_category = False
                 update.effective_chat.send_message(
                     text='So be it. Please w8 some time, you can drink coffee. '
                         'I will send result soonest as possible.',
@@ -120,7 +144,7 @@ def get_text(update: Update, context: CallbackContext):
 
                 result = parse_category_stihiya(users[chat_id].categories[users[chat_id].selected_category][text_data])
                 users[chat_id].start_parse = False
-
+                
                 file_name = f'{text_data}_{datetime.date.today()}.xlsx' # if python >= 3.8
 
                 workbook = xlsxwriter.Workbook(file_name)
@@ -171,6 +195,7 @@ def main():
     bot = Bot(
         # request=request,
         token='1468659694:AAGQQAo6QddW9E_TK5efCtdu8D6D19e-pxk',
+        # token='1442274305:AAF8v6yL1Ux_GwO_IPq5h772NUtUJw1Ld38', # development
         )
     updater = Updater(
         bot=bot,

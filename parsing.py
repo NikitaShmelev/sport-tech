@@ -100,6 +100,6 @@ def parse_category_stihiya(url):
             del prices[1]
             del prices[3]
             del prices[2]
-        result.append([title, prices, link])
+        result.append([title, [float(i[0:-1]) for i in prices], link])
         print(title, prices, link)
     return result
