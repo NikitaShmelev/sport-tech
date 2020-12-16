@@ -9,4 +9,5 @@ class User():
 
 shops = {
         'FAMILY BOARDSHOP': 'https://shop.wakepark.by/',
+        'Rollershop': 'https://rollershop.by/',
     }

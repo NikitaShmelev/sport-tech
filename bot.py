@@ -14,7 +14,7 @@ import time
 from debug_for_bot import debug_requests, load_config
 from keyboards_for_bot import available_shops_keyboard, available_categories_keyboard
 from some_data import shops, User
-from parsing import get_page_doc, get_categories_stihiya, parse_category_stihiya
+from parsing import get_page_doc, get_categories, parse_category_stihiya
 
 config = load_config(getLogger(__name__))
 users = dict()
@@ -56,7 +56,7 @@ def get_text(update: Update, context: CallbackContext):
             if text_data in shops.keys():
                 users[chat_id].selected_shop = text_data
                 page_doc = get_page_doc(shops[text_data])
-                users[chat_id].categories = get_categories_stihiya(page_doc)
+                users[chat_id].categories = get_categories(page_doc, users[chat_id].selected_shop)
                 update.effective_chat.send_message(
                     text='Select category',
                     reply_markup=available_categories_keyboard(users[chat_id].categories, True if users[chat_id].selected_category else False)
@@ -108,11 +108,10 @@ def get_text(update: Update, context: CallbackContext):
                 worksheet.write(0, 4, 'Page url')
                 row = 1
                 col = 0
-                
+                start_time = time.time()
                 for category in users[chat_id].categories[selected_category]:
                     print(category, '\n\n')
-                    result = parse_category_stihiya(users[chat_id].categories[selected_category][category])
-                    
+                    result = parse_category_stihiya(users[chat_id].categories[selected_category][category])                    
                     for record in result:
                         worksheet.write(row, col, category)
                         worksheet.write(row, col + 1, record[0])
@@ -194,8 +193,8 @@ def main():
 	    )
     bot = Bot(
         # request=request,
-        token='1468659694:AAGQQAo6QddW9E_TK5efCtdu8D6D19e-pxk',
-        # token='1442274305:AAF8v6yL1Ux_GwO_IPq5h772NUtUJw1Ld38', # development
+        # token='1468659694:AAGQQAo6QddW9E_TK5efCtdu8D6D19e-pxk',
+        token='1442274305:AAF8v6yL1Ux_GwO_IPq5h772NUtUJw1Ld38', # development
         )
     updater = Updater(
         bot=bot,

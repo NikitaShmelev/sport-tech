@@ -2,41 +2,55 @@ from bs4 import BeautifulSoup
 import requests as req
 import lxml
 from urllib.request import Request, urlopen
-
+from multiprocessing import Pool
+import sys
+sys.setrecursionlimit(100000)
 
 def get_page_doc(page_url):
     hdr = {'User-Agent': 'Mozilla/5.0'}
-    # proxies = {"http": "http://10.10.1.10:3128",
-                # "https": "http://10.10.1.10:1080"}
-    # req.get(page_url, headers=hdr, proxies=proxies)
-    # print("FUCK")
-    req = Request(page_url, headers=hdr)
-    page = urlopen(req)
+    
+    request = Request(page_url, headers=hdr)
+    page = urlopen(request)
     soup = BeautifulSoup(page, 'lxml')
     return soup
 
-def get_categories_stihiya(page_doc):
+def get_categories(page_doc, shop):
     result = dict()
-    categories = page_doc.find_all("a", class_="nav-link dropdown-toggle text-uppercase font-weight-bold")
-    del categories[-1]
-    categories.append(page_doc.find("a", class_='nav-link text-uppercase font-weight-bold'))
-    
-    for i in categories:
-        category_name = i.text.strip()
-        skip_list = [
-            'Бренды', 'Акции', 'Подарочные сертификаты', 'О нас',
-            'Реквизиты', 'Преимущества', 'Таблица размеров', 'Обратная связь',
-            'Контакты', 'Регистрация', 'Авторизация', 'Показать все', 'Доставка и оплата'
-            ]
-        if category_name not in skip_list:
-            url = i.get('href')
-            doc = get_page_doc(url)
-            sub_result = doc.find_all('a', class_='btn btn-light bg-white rounded-0 text-uppercase font-weight-bold px-3 py-2 mx-2 mb-3')
-            """Searching for sub_cagories object in row above. Result contains tag <a>."""
-            links_to_subcategories = [i.get('href') for i in sub_result]
-            titles = [i.text.strip() for i in sub_result] # get titles of categories
-            result[category_name] = dict(zip(titles, links_to_subcategories))
-    
+    if shop == 'FAMILY BOARDSHOP':
+        categories = page_doc.find_all("a", class_="nav-link dropdown-toggle text-uppercase font-weight-bold")
+        del categories[-1]
+        categories.append(page_doc.find("a", class_='nav-link text-uppercase font-weight-bold'))
+        
+        for i in categories:
+            category_name = i.text.strip()
+            skip_list = [
+                'Бренды', 'Акции', 'Подарочные сертификаты', 'О нас',
+                'Реквизиты', 'Преимущества', 'Таблица размеров', 'Обратная связь',
+                'Контакты', 'Регистрация', 'Авторизация', 'Показать все', 'Доставка и оплата'
+                ]
+            if category_name not in skip_list:
+                url = i.get('href')
+                doc = get_page_doc(url)
+                sub_result = doc.find_all('a', class_='btn btn-light bg-white rounded-0 text-uppercase font-weight-bold px-3 py-2 mx-2 mb-3')
+                """Searching for sub_cagories object in row above. Result contains tag <a>."""
+                links_to_subcategories = [i.get('href') for i in sub_result]
+                titles = [i.text.strip() for i in sub_result] # get titles of categories
+                result[category_name] = dict(zip(titles, links_to_subcategories))
+    elif shop == 'Rollershop':
+        # require te get again soup becouse some faggot created this site
+
+        hdr = {'User-Agent': 'Mozilla/5.0'}
+        main_url = 'https://rollershop.by/'
+        request = req.get(main_url, headers=hdr)
+        request.encoding
+        page_doc = BeautifulSoup(request.content.decode('utf-8', 'ignore'), 'lxml')
+        categories = page_doc.find_all('li', class_='top has_sub top')
+        # <li class="top"><a href="https://rollershop.by/samokaty" class="">Самокаты</a></li>
+        # some dolbaeb did it 
+        # get link via your hands
+        for item in categories:
+            print(item.find('a', class_='sub_trigger'),'\n')
+
     return result
 
 
@@ -50,13 +64,12 @@ def get_pages_links_stihiya(url):
     for i in pages_links:
         for j in i:
             result.append(j.get('href'))
+    result = list(dict.fromkeys(result))
     return result
-
 
 def parse_category_stihiya(url):
     pages_links = get_pages_links_stihiya(url)
     containers = list()
-    result = list()
     for link in pages_links:
         page_doc = get_page_doc(link)
         containers += page_doc.find_all("div", class_="border-0 rounded-0 h-100 product-card")
