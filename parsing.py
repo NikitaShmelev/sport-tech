@@ -38,23 +38,51 @@ def get_categories(page_doc, shop):
                 result[category_name] = dict(zip(titles, links_to_subcategories))
     elif shop == 'Rollershop':
         # require te get again soup becouse some faggot created this site
-
-        hdr = {'User-Agent': 'Mozilla/5.0'}
-        main_url = 'https://rollershop.by/'
-        request = req.get(main_url, headers=hdr)
-        request.encoding
-        page_doc = BeautifulSoup(request.content.decode('utf-8', 'ignore'), 'lxml')
+        page_doc = get_page_doc_rollershop('https://rollershop.by/')
         categories = page_doc.find_all('li', class_='top has_sub top')
         # <li class="top"><a href="https://rollershop.by/samokaty" class="">Самокаты</a></li>
         # some dolbaeb did it 
         # get link via your hands
         for item in categories:
-            print(item.find('a', class_='sub_trigger'),'\n')
-
+            title = item.find('a', class_='sub_trigger').text.strip()
+            sub_titles = [i.text.strip() for i in item.find_all('a', class_='main-menu')]
+            sub_links = [i.get('href') for i in item.find_all('a', class_='main-menu')]
+            result[title] = dict(zip(sub_titles, sub_links))
     return result
 
 
-def get_pages_links_stihiya(url):
+def get_page_doc_rollershop(url):
+    hdr = {'User-Agent': 'Mozilla/5.0'}
+    request = req.get(url, headers=hdr)
+    request.encoding
+    soup = BeautifulSoup(request.content.decode('utf-8', 'ignore'), 'lxml')
+    return soup
+
+
+def get_products_links_pollershop(url):
+    page_doc = get_page_doc_rollershop(url)
+    containers = page_doc.find_all('div', class_='item product-layout')
+    result = [i.find('div', class_='name').find('a').get('href') for i in containers]
+    return result
+
+
+def parse_category_rollershop(url):
+    pages_links = get_products_links_pollershop(url)
+    resut = list()
+    for link in pages_links:
+        page_doc = get_page_doc_rollershop(link)
+        title = page_doc.find('h1', itemprop='name').text.strip()
+        price = float(page_doc.find('span', itemprop='price').text.strip().replace(' руб.', ''))
+        sizes = [i.text.strip() for i in page_doc.find_all('option')]
+        if sizes:
+            resut.append([title, price, sizes, url])
+        else:
+            resut.append([title, price, url])
+        print(title, price, sizes, link)
+    return resut
+
+
+def get_pages_links_wakepark(url):
     page_doc = get_page_doc(url)
     pages_links = [
         i.find_all('a') for i in page_doc.find_all("ul", class_="pagination")
@@ -67,8 +95,8 @@ def get_pages_links_stihiya(url):
     result = list(dict.fromkeys(result))
     return result
 
-def parse_category_stihiya(url):
-    pages_links = get_pages_links_stihiya(url)
+def parse_category_wakepark(url):
+    pages_links = get_pages_links_wakepark(url)
     containers = list()
     for link in pages_links:
         page_doc = get_page_doc(link)
