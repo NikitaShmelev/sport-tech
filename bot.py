@@ -111,8 +111,8 @@ def get_text(update: Update, context: CallbackContext):
                     col = 0
                     start_time = time.time()
                     for category in users[chat_id].categories[selected_category]:
-                        print(category, '\n\n')
                         result = parse_category_wakepark(users[chat_id].categories[selected_category][category])                    
+                        print(f'\n\n{category} is ready, start recording\n')
                         for record in result:
                             worksheet.write(row, col, category)
                             worksheet.write(row, col + 1, record[0])
@@ -124,16 +124,8 @@ def get_text(update: Update, context: CallbackContext):
                             worksheet.write(row, col + 4, record[2])
                             row += 1
                     workbook.close()
-                    file = open(f'{file_name}', 'rb') # if python >= 3.8
-                    update.effective_chat.bot.send_document(
-                        chat_id=chat_id,
-                        document=file,
-                        reply_markup=available_categories_keyboard(users[chat_id].categories, True if users[chat_id].selected_category else False),
-                    )
-                    file.close()
-                    os.remove(file_name)
+                    
                 elif users[chat_id].selected_shop == 'Rollershop':
-                    print('Rollershop')
                     workbook = xlsxwriter.Workbook(file_name)
                     worksheet = workbook.add_worksheet()
                     worksheet.set_column(0, 5, 25)
@@ -145,27 +137,32 @@ def get_text(update: Update, context: CallbackContext):
                     row = 1
                     col = 0
                     for category in users[chat_id].categories[selected_category]:
-                        print(category, '\n\n')
-                        result = parse_category_rollershop(users[chat_id].categories[users[chat_id].selected_category][category]) 
+                        result = parse_category_rollershop(users[chat_id].categories[users[chat_id].selected_category][category])
+                        print(f'\n\n{category} is ready, start recording\n')
                         for record in result:
                             if len(record) == 4:
                                 for size in record[2]:
-                                    if size != '--- Выберите ---' and len(record) > 1:
+                                    if size != '--- Выберите ---' and len(record[2]) > 1:
                                         worksheet.write(row, col, category)
                                         worksheet.write(row, col + 1, record[0]) # title
                                         worksheet.write(row, col + 2, record[1]) # price
                                         worksheet.write(row, col + 3, size) # size
                                         worksheet.write(row, col + 4, record[3]) # link
-                                        row += 1
                             else:
                                 worksheet.write(row, col, category)
                                 worksheet.write(row, col + 1, record[0]) # title
                                 worksheet.write(row, col + 2, record[1]) # price
-                                worksheet.write(row, col + 3, record[2]) # size
-                                worksheet.write(row, col + 4, record[3]) # link
-                                row += 1
-                                    
+                                worksheet.write(row, col + 4, record[2]) # link
+                            row += 1
                     workbook.close()
+                file = open(f'{file_name}', 'rb') # if python >= 3.8
+                update.effective_chat.bot.send_document(
+                    chat_id=chat_id,
+                    document=file,
+                    reply_markup=available_categories_keyboard(users[chat_id].categories, True if users[chat_id].selected_category else False),
+                )
+                file.close()
+                os.remove(file_name)
             elif text_data in users[chat_id].categories[users[chat_id].selected_category].keys():
                 users[chat_id].start_parse = True
                 users[chat_id].selected_sub_category = False
