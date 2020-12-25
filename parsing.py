@@ -19,8 +19,7 @@ def get_categories(page_doc, shop):
     if shop == 'FAMILY BOARDSHOP':
         categories = page_doc.find_all("a", class_="nav-link dropdown-toggle text-uppercase font-weight-bold")
         del categories[-1]
-        categories.append(page_doc.find("a", class_='nav-link text-uppercase font-weight-bold'))
-        
+        categories.append(page_doc.find("a", class_='nav-link text-uppercase font-weight-bold px-1'))
         for i in categories:
             category_name = i.text.strip()
             skip_list = [
@@ -29,13 +28,14 @@ def get_categories(page_doc, shop):
                 'Контакты', 'Регистрация', 'Авторизация', 'Показать все', 'Доставка и оплата'
                 ]
             if category_name not in skip_list:
-                url = i.get('href')
+                url = i.get('href')                
                 doc = get_page_doc(url)
                 sub_result = doc.find_all('a', class_='btn btn-light bg-white rounded-0 text-uppercase font-weight-bold px-3 py-2 mx-2 mb-3')
                 """Searching for sub_cagories object in row above. Result contains tag <a>."""
                 links_to_subcategories = [i.get('href') for i in sub_result]
                 titles = [i.text.strip() for i in sub_result] # get titles of categories
                 result[category_name] = dict(zip(titles, links_to_subcategories))
+            
     elif shop == 'Rollershop':
         # require te get again soup becouse some faggot created this site
         page_doc = get_page_doc_rollershop('https://rollershop.by/')
@@ -96,6 +96,7 @@ def get_pages_links_wakepark(url):
     return result
 
 def parse_category_wakepark(url):
+    result = list()
     pages_links = get_pages_links_wakepark(url)
     containers = list()
     for link in pages_links:

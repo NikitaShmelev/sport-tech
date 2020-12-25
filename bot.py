@@ -54,6 +54,7 @@ def get_text(update: Update, context: CallbackContext):
         # print(text_data, users[chat_id].categories.keys())
         if not users[chat_id].start_parse:
             if text_data in shops.keys():
+                print(text_data)
                 users[chat_id].selected_shop = text_data
                 page_doc = get_page_doc(shops[text_data])
                 users[chat_id].categories = get_categories(page_doc, users[chat_id].selected_shop)
@@ -198,6 +199,7 @@ def get_text(update: Update, context: CallbackContext):
                         worksheet.write(row, col + 3, record[2])
                         row += 1
                     workbook.close()
+                    
                 elif users[chat_id].selected_shop == 'Rollershop':
                     print('Rollershop')
                     result = parse_category_rollershop(users[chat_id].categories[users[chat_id].selected_category][text_data])
@@ -259,8 +261,8 @@ def main():
 	    )
     bot = Bot(
         # request=request,
-        token='1468659694:AAGQQAo6QddW9E_TK5efCtdu8D6D19e-pxk',
-        # token='1442274305:AAF8v6yL1Ux_GwO_IPq5h772NUtUJw1Ld38', # development
+        # token='1468659694:AAGQQAo6QddW9E_TK5efCtdu8D6D19e-pxk',
+        token='1442274305:AAF8v6yL1Ux_GwO_IPq5h772NUtUJw1Ld38', # development
         )
     updater = Updater(
         bot=bot,
