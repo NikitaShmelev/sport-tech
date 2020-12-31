@@ -48,6 +48,17 @@ def get_categories(page_doc, shop):
             sub_titles = [i.text.strip() for i in item.find_all('a', class_='main-menu')]
             sub_links = [i.get('href') for i in item.find_all('a', class_='main-menu')]
             result[title] = dict(zip(sub_titles, sub_links))
+    elif shop == 'Dominant':
+        categories = [i.text.strip() for i in page_doc.find_all('span', class_='name option-font-bold')]
+        categories = categories[0:round(len(categories)/2)]
+        sub_categories = page_doc.find_all('div', class_='burger-dropdown-menu toggle_menu')
+        for item in enumerate(sub_categories):
+            sub_result = item[1].find_all('a')
+            links = ['https://dominant.by' + i.get('href') for i in sub_result]
+            titles = [i.get('title') for i in sub_result]
+            result[categories[item[0]]] = dict(zip(titles, links))
+        result['Балансборды'] = 'https://dominant.by/catalog/balansbordy/'
+        result['Распродажи'] = 'https://dominant.by/catalog/sale/'
     return result
 
 
@@ -93,6 +104,42 @@ def get_pages_links_wakepark(url):
         for j in i:
             result.append(j.get('href'))
     result = list(dict.fromkeys(result))
+    return result
+
+
+def get_pages_links_dominant(url):
+    page_doc = get_page_doc(url)
+    result = [i.get('href') for i in page_doc.find('div', class_='nums').find_all('a')]
+    print(result)
+    return result
+
+
+def parse_category_dominant(url):
+    i = 1
+    result = list()
+    pages_links = list()
+
+    while True:
+        try:
+            page_doc = get_page_doc(f'{url}?PAGEN_1={i}')
+            pages_links.append(f'{url}?PAGEN_1={i}')
+            del page_doc
+            i += 1
+        except:
+            break
+    print(pages_links)
+    
+    for link in pages_links:
+        try:
+            page_doc = get_page_doc(link)
+            title = page_doc.find('h1', id='pagetitle').text.strip()
+            current_price = page_doc.find('div', class_='price font-bold font_mxs').text.strip().replace('от ','').replace(' руб.','')
+            # old_price = page_doc.find('div', class_='price discount')#.text.strip().replace('от ','').replace(' руб.','')
+            result.append([title, current_price])
+        except:
+            pass
+    # result = list(dict.fromkeys(result))
+    print(result)
     return result
 
 def parse_category_wakepark(url):

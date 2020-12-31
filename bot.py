@@ -14,7 +14,7 @@ import time
 from debug_for_bot import debug_requests, load_config
 from keyboards_for_bot import available_shops_keyboard, available_categories_keyboard
 from some_data import shops, User
-from parsing import get_page_doc, get_categories, parse_category_wakepark, parse_category_rollershop
+from parsing import get_page_doc, get_categories, parse_category_wakepark, parse_category_rollershop, parse_category_dominant
 
 config = load_config(getLogger(__name__))
 users = dict()
@@ -125,7 +125,19 @@ def get_text(update: Update, context: CallbackContext):
                             worksheet.write(row, col + 4, record[2])
                             row += 1
                     workbook.close()
-                    
+                elif users[chat_id].selected_shop == 'Dominant':
+                    result = parse_category_dominant(users[chat_id].categories[users[chat_id].selected_category][text_data])
+                    workbook = xlsxwriter.Workbook(file_name)
+                    worksheet = workbook.add_worksheet()
+                    worksheet.set_column(0, 5, 25)
+                    worksheet.write(0, 0, 'Title')
+                    worksheet.write(0, 1, 'New price')
+                    worksheet.write(0, 2, 'Old price')
+                    worksheet.write(0, 3, 'Page url')
+                    row = 1
+                    col = 0
+                    for record in result:
+                        pass
                 elif users[chat_id].selected_shop == 'Rollershop':
                     workbook = xlsxwriter.Workbook(file_name)
                     worksheet = workbook.add_worksheet()
@@ -199,7 +211,9 @@ def get_text(update: Update, context: CallbackContext):
                         worksheet.write(row, col + 3, record[2])
                         row += 1
                     workbook.close()
-                    
+                elif users[chat_id].selected_shop == 'Dominant':
+                    result = parse_category_dominant(users[chat_id].categories[users[chat_id].selected_category][text_data])
+                    print('Dominant') 
                 elif users[chat_id].selected_shop == 'Rollershop':
                     print('Rollershop')
                     result = parse_category_rollershop(users[chat_id].categories[users[chat_id].selected_category][text_data])
@@ -261,8 +275,8 @@ def main():
 	    )
     bot = Bot(
         # request=request,
-        token='1468659694:AAGQQAo6QddW9E_TK5efCtdu8D6D19e-pxk',
-        # token='1442274305:AAF8v6yL1Ux_GwO_IPq5h772NUtUJw1Ld38', # development
+        # token='1468659694:AAGQQAo6QddW9E_TK5efCtdu8D6D19e-pxk',
+        token='1442274305:AAF8v6yL1Ux_GwO_IPq5h772NUtUJw1Ld38', # development
         )
     updater = Updater(
         bot=bot,

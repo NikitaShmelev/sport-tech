@@ -8,6 +8,7 @@ class User():
         self.selected_sub_category = None
 
 shops = {
+        'Dominant': 'https://dominant.by/',
         'FAMILY BOARDSHOP': 'https://shop.wakepark.by/',
         'Rollershop': 'https://rollershop.by/',
     }
