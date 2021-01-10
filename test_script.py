@@ -10,16 +10,25 @@ sys.setrecursionlimit(100000)
 
 
 
-url = 'https://shop.wakepark.by/'
+url = 'https://dominant.by/catalog/clothes/'
 
 hdr = {'User-Agent': 'Mozilla/5.0'}
 request = req.get(url, headers=hdr)
 # request.encoding
 soup = BeautifulSoup(request.content.decode('utf-8', 'ignore'), 'lxml')
+div = soup.find('div', class_='module-pagination')
+links = ['https://dominant.by' + i.get('href') for i in div.find_all('a', class_='dark_link')]
+# corrent_count_of_links = links[-1][(links[-1].index('=') + 1):]
+# print(corrent_count_of_links)
 
-print(soup)
-
-
+request = req.get(links[-2], headers=hdr)
+new_doc = BeautifulSoup(request.content.decode('utf-8', 'ignore'), 'lxml')
+div = soup.find('div', class_='module-pagination')
+# links = ['https://dominant.by' + i.get('href') for i in div.find_all('a', class_='dark_link')]
+print(div.find_all('a', class_='dark_link'))
+first_page_number = div.find_all('a', class_='dark_link')[0].text.strip()
+last_page_number = div.find_all('a', class_='dark_link')[-1].text.strip()#.replace('...', '')
+print(first_page_number, last_page_number)
 
 
 

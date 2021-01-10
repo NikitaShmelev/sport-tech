@@ -126,18 +126,30 @@ def get_text(update: Update, context: CallbackContext):
                             row += 1
                     workbook.close()
                 elif users[chat_id].selected_shop == 'Dominant':
-                    result = parse_category_dominant(users[chat_id].categories[users[chat_id].selected_category][text_data])
                     workbook = xlsxwriter.Workbook(file_name)
                     worksheet = workbook.add_worksheet()
                     worksheet.set_column(0, 5, 25)
-                    worksheet.write(0, 0, 'Title')
-                    worksheet.write(0, 1, 'New price')
-                    worksheet.write(0, 2, 'Old price')
-                    worksheet.write(0, 3, 'Page url')
+                    worksheet.write(0, 0, 'Category')
+                    worksheet.write(0, 1, 'Title')
+                    worksheet.write(0, 2, 'Current price')
+                    worksheet.write(0, 3, 'Old price')
+                    worksheet.write(0, 4, 'Size/Sex')
+                    worksheet.write(0, 5, 'Page url')
                     row = 1
                     col = 0
-                    for record in result:
-                        pass
+                    for category in users[chat_id].categories[selected_category]:
+                        result = parse_category_dominant(users[chat_id].categories[users[chat_id].selected_category][category])
+                        print(f'\n\n{category} is ready, start recording\n')
+                        for record in result:
+                            for size in record[-2]:
+                                worksheet.write(row, col, category) # category
+                                worksheet.write(row, col + 1, record[0]) # title
+                                worksheet.write(row, col + 2, record[1]) # current price
+                                worksheet.write(row, col + 3, record[2]) # old price 
+                                worksheet.write(row, col + 4, size) # size
+                                worksheet.write(row, col + 5, record[-1]) # url
+                                row += 1
+                    workbook.close()
                 elif users[chat_id].selected_shop == 'Rollershop':
                     workbook = xlsxwriter.Workbook(file_name)
                     worksheet = workbook.add_worksheet()
@@ -213,7 +225,27 @@ def get_text(update: Update, context: CallbackContext):
                     workbook.close()
                 elif users[chat_id].selected_shop == 'Dominant':
                     result = parse_category_dominant(users[chat_id].categories[users[chat_id].selected_category][text_data])
-                    print('Dominant') 
+                    print('Dominant')
+                    workbook = xlsxwriter.Workbook(file_name)
+                    worksheet = workbook.add_worksheet()
+                    worksheet.set_column(0, 5, 25)
+                    worksheet.write(0, 0, 'Title')
+                    worksheet.write(0, 1, 'Current price')
+                    worksheet.write(0, 2, 'Old price')
+                    worksheet.write(0, 3, 'Size/Sex')
+                    worksheet.write(0, 4, 'Page url')
+                    row = 1
+                    col = 0
+                    for record in result:
+                        for size in record[-2]:
+                            worksheet.write(row, col, record[0]) # title
+                            worksheet.write(row, col + 1, record[1]) # current price
+                            worksheet.write(row, col + 2, record[2]) # old price 
+                            worksheet.write(row, col + 3, size) # size
+                            worksheet.write(row, col + 4, record[-1]) # url
+                            row += 1
+                    workbook.close()
+
                 elif users[chat_id].selected_shop == 'Rollershop':
                     print('Rollershop')
                     result = parse_category_rollershop(users[chat_id].categories[users[chat_id].selected_category][text_data])

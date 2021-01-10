@@ -4,7 +4,9 @@ import lxml
 from urllib.request import Request, urlopen
 from multiprocessing import Pool
 import sys
+import time
 sys.setrecursionlimit(100000)
+
 
 def get_page_doc(page_url):
     hdr = {'User-Agent': 'Mozilla/5.0'}
@@ -13,6 +15,7 @@ def get_page_doc(page_url):
     page = urlopen(request)
     soup = BeautifulSoup(page, 'lxml')
     return soup
+
 
 def get_categories(page_doc, shop):
     result = dict()
@@ -117,29 +120,44 @@ def get_pages_links_dominant(url):
 def parse_category_dominant(url):
     i = 1
     result = list()
-    pages_links = list()
+    pages_links = [url]
+    page_doc = get_page_doc(url)
+    div = page_doc.find('div', class_='module-pagination')
+    if div:
+        first_page_number = int(div.find_all('a', class_='dark_link')[0].text.strip())
+        last_page_number = int(div.find_all('a', class_='dark_link')[-1].text.strip())
+        for number in range(first_page_number, last_page_number+1):
+            pages_links.append(f'{url}?PAGEN_1={number}')
 
-    while True:
-        try:
-            page_doc = get_page_doc(f'{url}?PAGEN_1={i}')
-            pages_links.append(f'{url}?PAGEN_1={i}')
-            del page_doc
-            i += 1
-        except:
-            break
-    print(pages_links)
     
     for link in pages_links:
-        try:
-            page_doc = get_page_doc(link)
+        print(link)
+        # time.sleep()
+        page_doc = get_page_doc(link)
+        item_links = ['https://dominant.by' + i.get('href') for i in page_doc.find_all('a', class_='dark_link option-font-bold font_sm')]
+        
+        for url in item_links:
+            page_doc = get_page_doc(url)
             title = page_doc.find('h1', id='pagetitle').text.strip()
-            current_price = page_doc.find('div', class_='price font-bold font_mxs').text.strip().replace('от ','').replace(' руб.','')
-            # old_price = page_doc.find('div', class_='price discount')#.text.strip().replace('от ','').replace(' руб.','')
-            result.append([title, current_price])
-        except:
-            pass
-    # result = list(dict.fromkeys(result))
-    print(result)
+            current_price = page_doc.find('div', class_='price font-bold font_mxs').text.strip().replace(
+                                                                                                'от ','').replace(
+                                                                                                        ' руб.', '').replace(
+                                                                                                                    ' /шт', '').replace('\'','')
+            if len(current_price) > 6:
+                current_price = current_price[0] + current_price[2:]
+            else:
+                current_price = current_price
+            old_price = 'пока не добывается :('#page_doc.find('div', class_='sale-number rounded2')#.text.strip()
+
+            try:
+                sizes = [i.text.strip() for i in page_doc.find('div', class_='bx_size').find_all('span', class_='cnt')]
+            except:
+                sizes = (None, )
+            print(title, current_price, sizes)
+            if [title, current_price, sizes] not in result:
+                result.append([title, current_price, old_price, sizes, url])
+            else:
+                break
     return result
 
 def parse_category_wakepark(url):
