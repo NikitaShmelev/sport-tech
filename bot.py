@@ -308,7 +308,7 @@ def main():
     bot = Bot(
         # request=request,
         token=token,
-        # token='1442274305:AAF8v6yL1Ux_GwO_IPq5h772NUtUJw1Ld38', # development
+        # token='', # development
         )
     updater = Updater(
         bot=bot,
