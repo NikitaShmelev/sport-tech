@@ -15,7 +15,7 @@ def get_page_doc(page_url):
     page = urlopen(request)
     soup = BeautifulSoup(page, 'lxml')
     return soup
-
+    
 
 def get_categories(page_doc, shop):
     result = dict()
@@ -89,9 +89,9 @@ def parse_category_rollershop(url):
         price = float(page_doc.find('span', itemprop='price').text.strip().replace(' руб.', ''))
         sizes = [i.text.strip() for i in page_doc.find_all('option')]
         if sizes:
-            resut.append([title, price, sizes, url])
+            resut.append([title, price, sizes, link])
         else:
-            resut.append([title, price, url])
+            resut.append([title, price, link])
         print(title, price, sizes, link)
     return resut
 
@@ -128,7 +128,6 @@ def parse_category_dominant(url):
         last_page_number = int(div.find_all('a', class_='dark_link')[-1].text.strip())
         for number in range(first_page_number, last_page_number+1):
             pages_links.append(f'{url}?PAGEN_1={number}')
-
     
     for link in pages_links:
         print(link)
