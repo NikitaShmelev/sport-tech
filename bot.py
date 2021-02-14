@@ -10,7 +10,7 @@ import os
 from logging import getLogger
 import time
 
-
+from bot_token import bot_token
 from debug_for_bot import debug_requests, load_config
 from keyboards_for_bot import available_shops_keyboard, available_categories_keyboard
 from some_data import shops, User
@@ -307,8 +307,7 @@ def main():
 	    )
     bot = Bot(
         # request=request,
-        token=token,
-        # token='', # development
+        token=bot_token,
         )
     updater = Updater(
         bot=bot,
