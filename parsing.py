@@ -4,6 +4,7 @@ import lxml
 from urllib.request import Request, urlopen
 from multiprocessing import Pool
 import sys
+import os
 import time
 sys.setrecursionlimit(100000)
 
@@ -15,7 +16,20 @@ def get_page_doc(page_url):
     page = urlopen(request)
     soup = BeautifulSoup(page, 'lxml')
     return soup
-    
+
+def make_folders(result, shop):
+    for key in result.keys():
+        try:
+            os.mkdir(f'./{shop}/{key}')
+        except:
+            pass
+        for sub_key in result[key]:
+            try:
+                os.mkdir(f'./{shop}/{key}/{sub_key}')
+            except:
+                pass
+
+
 
 def get_categories(page_doc, shop):
     result = dict()
@@ -62,6 +76,7 @@ def get_categories(page_doc, shop):
             result[categories[item[0]]] = dict(zip(titles, links))
         result['Балансборды'] = 'https://dominant.by/catalog/balansbordy/'
         result['Распродажи'] = 'https://dominant.by/catalog/sale/'
+    make_folders(result, shop)
     return result
 
 
@@ -113,7 +128,6 @@ def get_pages_links_wakepark(url):
 def get_pages_links_dominant(url):
     page_doc = get_page_doc(url)
     result = [i.get('href') for i in page_doc.find('div', class_='nums').find_all('a')]
-    print(result)
     return result
 
 

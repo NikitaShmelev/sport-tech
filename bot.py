@@ -165,6 +165,7 @@ def get_text(update: Update, context: CallbackContext):
                         result = parse_category_rollershop(users[chat_id].categories[users[chat_id].selected_category][category])
                         print(f'\n\n{category} is ready, start recording\n')
                         for record in result:
+                            
                             if len(record) == 4:
                                 for size in record[2]:
                                     if size != '--- Выберите ---' and len(record[2]) > 1:
@@ -259,6 +260,7 @@ def get_text(update: Update, context: CallbackContext):
                     row = 1
                     col = 0
                     for record in result:
+                        
                         if len(record) == 4:
                             for size in record[2]:
                                 print(size)
@@ -271,8 +273,8 @@ def get_text(update: Update, context: CallbackContext):
                         else:
                             worksheet.write(row, col, record[0]) # title
                             worksheet.write(row, col + 1, record[1]) # price
-                            worksheet.write(row, col + 2, record[2]) # size
-                            worksheet.write(row, col + 3, record[3]) # link
+                            # worksheet.write(row, col + 2, record[2]) # size
+                            worksheet.write(row, col + 3, record[2]) # link
                             row += 1
                                     
                     workbook.close()
@@ -301,6 +303,11 @@ def get_text(update: Update, context: CallbackContext):
 
 @debug_requests
 def main():
+    for i in shops.keys():
+        try:
+            os.mkdir(i)
+        except:
+            pass
     request = Request(
         connect_timeout=0.5,
         read_timeout=1.0,
