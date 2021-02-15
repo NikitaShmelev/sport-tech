@@ -10,11 +10,12 @@ import os
 from logging import getLogger
 import time
 
-from bot_token import bot_token
+from bot_token.bot_token import bot_token
 from debug_for_bot import debug_requests, load_config
 from keyboards_for_bot import available_shops_keyboard, available_categories_keyboard
 from some_data import shops, User
 from parsing import get_page_doc, get_categories, parse_category_wakepark, parse_category_rollershop, parse_category_dominant
+from work_with_exel import init_file_name
 
 config = load_config(getLogger(__name__))
 users = dict()
@@ -198,7 +199,9 @@ def get_text(update: Update, context: CallbackContext):
                     reply_markup=ReplyKeyboardRemove()
                 )
                 print(users[chat_id].categories[users[chat_id].selected_category][text_data])
-                file_name = f'{text_data}_{datetime.date.today()}.xlsx' # if python >= 3.8
+                
+                file_name = init_file_name(users[chat_id])
+                print(file_name, '\n\n')
                 if users[chat_id].selected_shop == 'FAMILY BOARDSHOP':
                     print('FAMILY BOARDSHOP')
                     result = parse_category_wakepark(users[chat_id].categories[users[chat_id].selected_category][text_data])
@@ -206,9 +209,10 @@ def get_text(update: Update, context: CallbackContext):
                     worksheet = workbook.add_worksheet()
                     worksheet.set_column(0, 5, 25)
                     worksheet.write(0, 0, 'Title')
-                    worksheet.write(0, 1, 'New price')
+                    worksheet.write(0, 1, 'Current price')
                     worksheet.write(0, 2, 'Old price')
-                    worksheet.write(0, 3, 'Page url')
+                    worksheet.write(0, 3, 'Size/Sex')
+                    worksheet.write(0, 4, 'Page url')
                     row = 1
                     col = 0
                     for record in result:
@@ -221,7 +225,7 @@ def get_text(update: Update, context: CallbackContext):
                             worksheet.write(row, col + 2, record[1][1])
                         else:
                             worksheet.write(row, col + 1, record[1][0])
-                        worksheet.write(row, col + 3, record[2])
+                        worksheet.write(row, col + 4, record[2])
                         row += 1
                     workbook.close()
                 elif users[chat_id].selected_shop == 'Dominant':
@@ -254,9 +258,10 @@ def get_text(update: Update, context: CallbackContext):
                     worksheet = workbook.add_worksheet()
                     worksheet.set_column(0, 5, 25)
                     worksheet.write(0, 0, 'Title')
-                    worksheet.write(0, 1, 'Price')
-                    worksheet.write(0, 2, 'Size')
-                    worksheet.write(0, 3, 'Page url')
+                    worksheet.write(0, 1, 'Current price')
+                    worksheet.write(0, 2, 'Old price')
+                    worksheet.write(0, 3, 'Size/Sex')
+                    worksheet.write(0, 4, 'Page url')
                     row = 1
                     col = 0
                     for record in result:
@@ -267,14 +272,14 @@ def get_text(update: Update, context: CallbackContext):
                                 if size != '--- Выберите ---' and len(record) > 1:
                                     worksheet.write(row, col, record[0]) # title
                                     worksheet.write(row, col + 1, record[1]) # price
-                                    worksheet.write(row, col + 2, size) # size
-                                    worksheet.write(row, col + 3, record[3]) # link
+                                    worksheet.write(row, col + 3, size) # size
+                                    worksheet.write(row, col + 4, record[3]) # link
                                     row += 1
                         else:
                             worksheet.write(row, col, record[0]) # title
                             worksheet.write(row, col + 1, record[1]) # price
-                            # worksheet.write(row, col + 2, record[2]) # size
-                            worksheet.write(row, col + 3, record[2]) # link
+                            # worksheet.write(row, col + 3, record[2]) # size
+                            worksheet.write(row, col + 4, record[2]) # link
                             row += 1
                                     
                     workbook.close()
