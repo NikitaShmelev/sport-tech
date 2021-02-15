@@ -11,10 +11,10 @@ sys.setrecursionlimit(100000)
 
 def get_page_doc(page_url):
     hdr = {'User-Agent': 'Mozilla/5.0'}
-    
     request = Request(page_url, headers=hdr)
     page = urlopen(request)
     soup = BeautifulSoup(page, 'lxml')
+    # os.system('clear')
     return soup
 
 def make_folders(result, shop):
@@ -85,6 +85,10 @@ def get_page_doc_rollershop(url):
     request = req.get(url, headers=hdr)
     request.encoding
     soup = BeautifulSoup(request.content.decode('utf-8', 'ignore'), 'lxml')
+    # try:
+    #     os.system('clear')
+    # except:
+    #     os.system('cls')
     return soup
 
 
@@ -95,20 +99,6 @@ def get_products_links_pollershop(url):
     return result
 
 
-def parse_category_rollershop(url):
-    pages_links = get_products_links_pollershop(url)
-    resut = list()
-    for link in pages_links:
-        page_doc = get_page_doc_rollershop(link)
-        title = page_doc.find('h1', itemprop='name').text.strip()
-        price = float(page_doc.find('span', itemprop='price').text.strip().replace(' руб.', ''))
-        sizes = [i.text.strip() for i in page_doc.find_all('option')]
-        if sizes:
-            resut.append([title, price, sizes, link])
-        else:
-            resut.append([title, price, link])
-        print(title, price, sizes, link)
-    return resut
 
 
 def get_pages_links_wakepark(url):
@@ -131,26 +121,100 @@ def get_pages_links_dominant(url):
     return result
 
 
-def parse_category_dominant(url):
-    i = 1
-    result = list()
-    pages_links = [url]
-    page_doc = get_page_doc(url)
-    div = page_doc.find('div', class_='module-pagination')
-    if div:
-        first_page_number = int(div.find_all('a', class_='dark_link')[0].text.strip())
-        last_page_number = int(div.find_all('a', class_='dark_link')[-1].text.strip())
-        for number in range(first_page_number, last_page_number+1):
-            pages_links.append(f'{url}?PAGEN_1={number}')
-    
-    for link in pages_links:
-        print(link)
-        # time.sleep()
-        page_doc = get_page_doc(link)
-        item_links = ['https://dominant.by' + i.get('href') for i in page_doc.find_all('a', class_='dark_link option-font-bold font_sm')]
-        
-        for url in item_links:
-            page_doc = get_page_doc(url)
+
+
+
+
+
+def parse_category(shop, url):
+
+    if shop == 'FAMILY BOARDSHOP':
+        result = list()
+        pages_links = get_pages_links_wakepark(url)
+        containers = list()
+        for link in pages_links:
+            page_doc = get_page_doc(link)
+            containers += page_doc.find_all("div", class_="border-0 rounded-0 h-100 product-card")
+            # break
+        for container in containers:
+            link = container.find('a').get('href')
+            title = container.find('img').get('alt').strip()
+            if title == 'Скидочная карта SHOP.WAKEPARK.BY':
+                continue
+            try:
+                doc = get_page_doc(link)
+            except:
+                continue
+            prices = doc.find('div', class_='p-price h2').text.strip()
+            prices = prices.split(' ')
+            if len(prices) == 2:
+                if 'BYN' not in prices[1]:
+                    prices[0] = prices[0].replace('BYN', '') + prices[1]
+                    del prices[1]
+                else:
+                    prices[0] = prices[0].replace('BYN', '')
+                    del prices[1]
+            elif len(prices) == 3:
+                for i in prices:
+                    if '\xa0\xa0' in i:
+                        prices[1] = prices[1].replace("\t", "").replace("\n", "").replace('\xa0\xa0','').replace('BYN','')
+                        del prices[2]
+                        break
+                else:
+                    prices[0] += prices[1]
+                    del prices[1]
+                    del prices[1]
+                    
+            elif len(prices) == 4:
+                prices[1] = prices[1].replace("\t", "").replace("\n", "").replace('\xa0\xa0','').replace('BYN','') + prices[2]
+                del prices[2]
+                del prices[2]
+            else:
+                prices[0] += prices[1]
+                prices[2] = prices[2].replace("\t", "").replace("\n", "").replace('\xa0\xa0','').replace('BYN','') + prices[3]
+                del prices[1]
+                del prices[3]
+                del prices[2]
+            result.append([title, [float(i[0:-1]) for i in prices], link])
+            print(title, prices, link)
+        return result
+    elif shop == 'Rollershop':
+        pages_links = get_products_links_pollershop(url)
+        resut = list()
+
+        for link in enumerate(pages_links):
+            page_doc = get_page_doc_rollershop(link[1])
+            title = page_doc.find('h1', itemprop='name').text.strip()
+            price = float(page_doc.find('span', itemprop='price').text.strip().replace(' руб.', ''))
+            sizes = [i.text.strip() for i in page_doc.find_all('option')]
+            if sizes:
+                resut.append([title, price, sizes, link[1]])
+            else:
+                resut.append([title, price, link[1]])
+            try:
+                os.system('clear')
+            except:
+                os.system('cls')
+            print(f'{link[0]*100/len(pages_links)}%')
+        return resut
+    elif shop == 'Dominant':
+        result = list()
+        pages_links = [url]
+        page_doc = get_page_doc(url)
+        div = page_doc.find('div', class_='module-pagination')
+        if div:
+            first_page_number = int(div.find_all('a', class_='dark_link')[0].text.strip())
+            last_page_number = int(div.find_all('a', class_='dark_link')[-1].text.strip())
+            for number in range(first_page_number, last_page_number+1):
+                pages_links.append(f'{url}?PAGEN_1={number}')
+        all_links = []
+        for link in enumerate(pages_links):
+            # time.sleep()
+            page_doc = get_page_doc(link[1])
+            item_links = ['https://dominant.by' + i.get('href') for i in page_doc.find_all('a', class_='dark_link option-font-bold font_sm')]
+            all_links += item_links
+        for url in enumerate(all_links):
+            page_doc = get_page_doc(url[1])
             title = page_doc.find('h1', id='pagetitle').text.strip()
             current_price = page_doc.find('div', class_='price font-bold font_mxs').text.strip().replace(
                                                                                                 'от ','').replace(
@@ -166,60 +230,13 @@ def parse_category_dominant(url):
                 sizes = [i.text.strip() for i in page_doc.find('div', class_='bx_size').find_all('span', class_='cnt')]
             except:
                 sizes = (None, )
-            print(title, current_price, sizes)
-            if [title, current_price, sizes] not in result:
-                result.append([title, current_price, old_price, sizes, url])
-            else:
-                break
-    return result
-
-def parse_category_wakepark(url):
-    result = list()
-    pages_links = get_pages_links_wakepark(url)
-    containers = list()
-    for link in pages_links:
-        page_doc = get_page_doc(link)
-        containers += page_doc.find_all("div", class_="border-0 rounded-0 h-100 product-card")
-        # break
-    for container in containers:
-        link = container.find('a').get('href')
-        title = container.find('img').get('alt').strip()
-        if title == 'Скидочная карта SHOP.WAKEPARK.BY':
-            continue
-        try:
-            doc = get_page_doc(link)
-        except:
-            continue
-        prices = doc.find('div', class_='p-price h2').text.strip()
-        prices = prices.split(' ')
-        if len(prices) == 2:
-            if 'BYN' not in prices[1]:
-                prices[0] = prices[0].replace('BYN', '') + prices[1]
-                del prices[1]
-            else:
-                prices[0] = prices[0].replace('BYN', '')
-                del prices[1]
-        elif len(prices) == 3:
-            for i in prices:
-                if '\xa0\xa0' in i:
-                    prices[1] = prices[1].replace("\t", "").replace("\n", "").replace('\xa0\xa0','').replace('BYN','')
-                    del prices[2]
-                    break
-            else:
-                prices[0] += prices[1]
-                del prices[1]
-                del prices[1]
-                
-        elif len(prices) == 4:
-            prices[1] = prices[1].replace("\t", "").replace("\n", "").replace('\xa0\xa0','').replace('BYN','') + prices[2]
-            del prices[2]
-            del prices[2]
-        else:
-            prices[0] += prices[1]
-            prices[2] = prices[2].replace("\t", "").replace("\n", "").replace('\xa0\xa0','').replace('BYN','') + prices[3]
-            del prices[1]
-            del prices[3]
-            del prices[2]
-        result.append([title, [float(i[0:-1]) for i in prices], link])
-        print(title, prices, link)
-    return result
+            try:
+                os.system('clear')
+            except:
+                os.system('cls')
+            print(f'{url[0]*100/len(all_links)}%')
+            # if [title, current_price, sizes] not in result:
+            #     result.append([title, current_price, old_price, sizes, url[1]])
+            # else:
+            #     break
+        return result
