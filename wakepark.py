@@ -1,21 +1,10 @@
 from bs4 import BeautifulSoup
 import requests as req
+from multiprocessing import Pool
 import lxml
 from urllib.request import Request, urlopen
-from multiprocessing import Pool
-
-# from parsing import get_page_doc, get_pages_links_stihiya
-import sys
-sys.setrecursionlimit(100000)
-
-
-
-
-
-
-
-
-
+# from parsing import get_page_doc
+import time
 
 def get_page_doc(page_url):
     hdr = {'User-Agent': 'Mozilla/5.0'}
@@ -25,34 +14,20 @@ def get_page_doc(page_url):
     # os.system('clear')
     return soup
 
+def get_pages_links_wakepark(url):
+    page_doc = get_page_doc(url)
+    pages_links = [
+        i.find_all('a') for i in page_doc.find_all("ul", class_="pagination")
+        ]
+    result = list()
+    result.append(url)
+    for i in pages_links:
+        for j in i:
+            result.append(j.get('href'))
+    result = list(dict.fromkeys(result))
+    return result
 
-
-
-
-
-
-
-url = 'https://shop.wakepark.by/snowboarding/snowboards/'
-
-page_doc = get_page_doc(url)
-pages_links = [
-    i.find_all('a') for i in page_doc.find_all("ul", class_="pagination")
-    ]
-result = list()
-result.append(url)
-for i in pages_links:
-    for j in i:
-        result.append(j.get('href'))
-pages_links = list(dict.fromkeys(result))
-
-
-categories = page_doc.find_all("a", class_="nav-link dropdown-toggle text-uppercase font-weight-bold")
-del categories[-1]
-categories.append(page_doc.find("a", class_='nav-link text-uppercase font-weight-bold px-1'))
-
-
-def get_categories(i):
-    
+def get_categories_pool(i):
     category_name = i.text.strip()
     skip_list = [
         'Бренды', 'Акции', 'Подарочные сертификаты', 'О нас',
@@ -68,21 +43,17 @@ def get_categories(i):
         titles = [i.text.strip() for i in sub_result] # get titles of categories
         return (category_name, dict(zip(titles, links_to_subcategories)))
 
-
-
-with Pool(10) as p:
-    result = p.map(get_categories, categories)
-main_res = dict()
-for i in result:
-    main_res[i[0]] = i[1]
-
-# pages_links = [i.get('href') for i in pages_links]
-print(pages_links)
-containers = list()
-for link in pages_links:
-    page_doc = get_page_doc(link)
-    containers += page_doc.find_all("div", class_="border-0 rounded-0 h-100 product-card")
-
+def wakepark_categories(page_doc):
+    result = dict()
+    categories = page_doc.find_all("a", class_="nav-link dropdown-toggle text-uppercase font-weight-bold")
+    del categories[-1]
+    categories.append(page_doc.find("a", class_='nav-link text-uppercase font-weight-bold px-1'))
+    with Pool(10) as p:
+        sub_result = p.map(get_categories_pool, (categories))
+    result = dict()
+    for i in sub_result:
+        result[i[0]] = i[1]
+    return result
 
 def parse_containers(container):
     link = container.find('a').get('href')
@@ -125,10 +96,16 @@ def parse_containers(container):
         print(title, prices, link)
         return [title, [float(i[0:-1]) for i in prices], link]
 
-last_res = list()
-with Pool(10) as p:
-    last_res += p.map(parse_containers, containers)
 
-
-for i in last_res:
-    print(i,'\n\n\n')
+def parse_category_wakepark(url):
+    result = list()
+    pages_links = get_pages_links_wakepark(url)
+    containers = list()
+    for link in pages_links:
+        page_doc = get_page_doc(link)
+        containers += page_doc.find_all("div", class_="border-0 rounded-0 h-100 product-card")
+        with Pool(10) as p:
+            result += p.map(parse_containers, (containers))
+    print(len(result))
+    time.sleep(1)
+    return result
