@@ -3,7 +3,7 @@ import requests as req
 import lxml
 from urllib.request import Request, urlopen
 import os
-
+from multiprocessing import Pool
 
 def get_page_doc(page_url):
     hdr = {'User-Agent': 'Mozilla/5.0'}
@@ -27,7 +27,31 @@ def dominant_categories(page_doc, result=dict()):
     return result
 
 
-def parse_category_dominant(url, result=list()):
+def parse_with_pool(url):
+    
+    page_doc = get_page_doc(url)
+    title = page_doc.find('h1', id='pagetitle').text.strip()
+    current_price = page_doc.find('div', class_='price font-bold font_mxs').text.strip().replace(
+                                                                                        'от ','').replace(
+                                                                                                ' руб.', '').replace(
+                                                                                                            ' /шт', '').replace('\'','')
+    if len(current_price) > 6:
+        current_price = current_price[0] + current_price[2:]
+    else:
+        current_price = current_price
+    old_price = 'пока не добывается :('#page_doc.find('div', class_='sale-number rounded2')#.text.strip()
+
+    try:
+        sizes = [i.text.strip() for i in page_doc.find('div', class_='bx_size').find_all('span', class_='cnt')]
+    except:
+        sizes = (None, )
+    # print([title, current_price, old_price, sizes, url[1]])
+    return [title, current_price, old_price, sizes, url[1]]
+        
+    
+
+
+def parse_category_dominant(url, sub_result=list()):
     pages_links = [url]
     page_doc = get_page_doc(url)
     div = page_doc.find('div', class_='module-pagination')
@@ -42,30 +66,10 @@ def parse_category_dominant(url, result=list()):
         page_doc = get_page_doc(link[1])
         item_links = ['https://dominant.by' + i.get('href') for i in page_doc.find_all('a', class_='dark_link option-font-bold font_sm')]
         all_links += item_links
-    for url in enumerate(all_links):
-        page_doc = get_page_doc(url[1])
-        title = page_doc.find('h1', id='pagetitle').text.strip()
-        current_price = page_doc.find('div', class_='price font-bold font_mxs').text.strip().replace(
-                                                                                            'от ','').replace(
-                                                                                                    ' руб.', '').replace(
-                                                                                                                ' /шт', '').replace('\'','')
-        if len(current_price) > 6:
-            current_price = current_price[0] + current_price[2:]
-        else:
-            current_price = current_price
-        old_price = 'пока не добывается :('#page_doc.find('div', class_='sale-number rounded2')#.text.strip()
-
-        try:
-            sizes = [i.text.strip() for i in page_doc.find('div', class_='bx_size').find_all('span', class_='cnt')]
-        except:
-            sizes = (None, )
-        try:
-            os.system('clear')
-        except:
-            os.system('cls')
-        print(f'{url[0]*100/len(all_links)}%')
-        if [title, current_price, sizes] not in result:
-            result.append([title, current_price, old_price, sizes, url[1]])
-        else:
-            break
+    with Pool(5) as p:
+        sub_result += p.map(parse_with_pool, (all_links))
+    print(len(sub_result))
+    result = list()
+    result = [item for item in sub_result if item not in result]
+    print(len(result))
     return result

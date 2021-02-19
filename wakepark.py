@@ -14,6 +14,7 @@ def get_page_doc(page_url):
     # os.system('clear')
     return soup
 
+
 def get_pages_links_wakepark(url):
     page_doc = get_page_doc(url)
     pages_links = [
@@ -26,6 +27,7 @@ def get_pages_links_wakepark(url):
             result.append(j.get('href'))
     result = list(dict.fromkeys(result))
     return result
+
 
 def get_categories_pool(i):
     category_name = i.text.strip()
@@ -49,7 +51,7 @@ def wakepark_categories(page_doc):
     categories = page_doc.find_all("a", class_="nav-link dropdown-toggle text-uppercase font-weight-bold")
     del categories[-1]
     categories.append(page_doc.find("a", class_='nav-link text-uppercase font-weight-bold px-1'))
-    with Pool(10) as p:
+    with Pool(5) as p:
         sub_result = p.map(get_categories_pool, (categories))
     result = dict()
     for i in sub_result:
@@ -106,7 +108,7 @@ def parse_category_wakepark(url):
     for link in pages_links:
         page_doc = get_page_doc(link)
         containers += page_doc.find_all("div", class_="border-0 rounded-0 h-100 product-card")
-        with Pool(10) as p:
+        with Pool(5) as p:
             result += p.map(parse_containers, (containers))
     print(len(result))
     time.sleep(1)

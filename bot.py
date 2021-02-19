@@ -15,7 +15,7 @@ from debug_for_bot import debug_requests, load_config
 from keyboards_for_bot import available_shops_keyboard, available_categories_keyboard
 from some_data import shops, User
 from parsing import get_page_doc, get_categories, parse_category
-from work_with_exel import init_file_name
+from work_with_exel import init_file_name, record_data, create_exel_file
 
 config = load_config(getLogger(__name__))
 users = dict()
@@ -64,7 +64,9 @@ def get_text(update: Update, context: CallbackContext):
                 users[chat_id].categories = get_categories(page_doc, users[chat_id].selected_shop)
                 update.effective_chat.send_message(
                     text='Select category',
-                    reply_markup=available_categories_keyboard(users[chat_id].categories, True if users[chat_id].selected_category else False)
+                    reply_markup=available_categories_keyboard(
+                            users[chat_id].categories, True if users[chat_id].selected_category else False
+                        )
                 )
             elif text_data == 'BACK':
                 if users[chat_id].selected_sub_category:
@@ -72,7 +74,9 @@ def get_text(update: Update, context: CallbackContext):
                     users[chat_id].selected_category == None
                     update.effective_chat.send_message(
                         text='Select category',
-                        reply_markup=available_categories_keyboard(users[chat_id].categories, True if users[chat_id].selected_category else False)
+                        reply_markup=available_categories_keyboard(
+                                    users[chat_id].categories, True if users[chat_id].selected_category else False
+                                    )
                     )
                 elif users[chat_id].selected_category:
                     users[chat_id].selected_category == None
@@ -81,11 +85,11 @@ def get_text(update: Update, context: CallbackContext):
                         text='Select shop',
                         reply_markup=available_shops_keyboard()
                         )
-                elif users[chat_id].selected_category == None:
-                    users[chat_id].selected_category == None
+                elif not users[chat_id].selected_category and users[chat_id].selected_shop:
+                    users[chat_id].selected_shop == None
                     update.effective_chat.send_message(
-                        text='Select category',
-                        reply_markup=available_categories_keyboard(users[chat_id].categories, True if users[chat_id].selected_category else False)
+                        text='Select shop',
+                        reply_markup=available_shops_keyboard()
                     )
                     
             elif text_data in users[chat_id].categories.keys():
@@ -104,98 +108,20 @@ def get_text(update: Update, context: CallbackContext):
                 )
                 selected_category = users[chat_id].selected_category
                 file_name = f'{selected_category}(FULL)_{datetime.date.today()}.xlsx' # if python >= 3.8
-                
-                if users[chat_id].selected_shop == 'FAMILY BOARDSHOP':
-                    workbook = xlsxwriter.Workbook(file_name)
-                    worksheet = workbook.add_worksheet()
-                    worksheet.write(0, 0, 'Category')
-                    worksheet.write(0, 1, 'Title')
-                    worksheet.write(0, 2, 'New price')
-                    worksheet.write(0, 3, 'Old price')
-                    worksheet.write(0, 4, 'Page url')
-                    row = 1
-                    col = 0
-                    start_time = time.time()
-                    for category in users[chat_id].categories[selected_category]:
-                        result = parse_category(
-                            users[chat_id].selected_shop,
-                            users[chat_id].categories[selected_category][category]
-                            )                    
-                        print(f'\n\n{category} is ready, start recording\n')
-                        for record in result:
-                            if record:
-                                worksheet.write(row, col, category)
-                                worksheet.write(row, col + 1, record[0])
-                                if len(record[1]) == 2:
-                                    worksheet.write(row, col + 2, record[1][0])
-                                    worksheet.write(row, col + 3, record[1][1])
-                                else:
-                                    worksheet.write(row, col + 2, record[1][0])
-                                worksheet.write(row, col + 4, record[2])
-                                row += 1
-                    workbook.close()
-                elif users[chat_id].selected_shop == 'Dominant':
-                    workbook = xlsxwriter.Workbook(file_name)
-                    worksheet = workbook.add_worksheet()
-                    worksheet.set_column(0, 5, 25)
-                    worksheet.write(0, 0, 'Category')
-                    worksheet.write(0, 1, 'Title')
-                    worksheet.write(0, 2, 'Current price')
-                    worksheet.write(0, 3, 'Old price')
-                    worksheet.write(0, 4, 'Size/Sex')
-                    worksheet.write(0, 5, 'Page url')
-                    row = 1
-                    col = 0
-                    for category in users[chat_id].categories[selected_category]:
-                        result = parse_category(
-                            users[chat_id].selected_shop,
-                            users[chat_id].categories[users[chat_id].selected_category][category]
-                            )
-                        print(f'\n\n{category} is ready, start recording\n')
-                        for record in result:
-                            for size in record[-2]:
-                                worksheet.write(row, col, category) # category
-                                worksheet.write(row, col + 1, record[0]) # title
-                                worksheet.write(row, col + 2, record[1]) # current price
-                                worksheet.write(row, col + 3, record[2]) # old price 
-                                worksheet.write(row, col + 4, size) # size
-                                worksheet.write(row, col + 5, record[-1]) # url
-                                row += 1
-                    workbook.close()
-                elif users[chat_id].selected_shop == 'Rollershop':
-                    workbook = xlsxwriter.Workbook(file_name)
-                    worksheet = workbook.add_worksheet()
-                    worksheet.set_column(0, 5, 25)
-                    worksheet.write(0, 0, 'Category')
-                    worksheet.write(0, 1, 'Title')
-                    worksheet.write(0, 2, 'Price')
-                    worksheet.write(0, 3, 'Size')
-                    worksheet.write(0, 4, 'Page url')
-                    row = 1
-                    col = 0
-                    for category in users[chat_id].categories[selected_category]:
-                        result = parse_category(
-                            users[chat_id].selected_shop,
-                            users[chat_id].categories[users[chat_id].selected_category][category]
-                            )
-                        print(f'\n\n{category} is ready, start recording\n')
-                        for record in result:
-                            
-                            if len(record) == 4:
-                                for size in record[2]:
-                                    if size != '--- Выберите ---' and len(record[2]) > 1:
-                                        worksheet.write(row, col, category)
-                                        worksheet.write(row, col + 1, record[0]) # title
-                                        worksheet.write(row, col + 2, record[1]) # price
-                                        worksheet.write(row, col + 3, size) # size
-                                        worksheet.write(row, col + 4, record[3]) # link
-                            else:
-                                worksheet.write(row, col, category)
-                                worksheet.write(row, col + 1, record[0]) # title
-                                worksheet.write(row, col + 2, record[1]) # price
-                                worksheet.write(row, col + 4, record[2]) # link
-                            row += 1
-                    workbook.close()
+                start_time = time.time()
+                workbook, worksheet = create_exel_file(file_name)
+                row = 1
+                for category in users[chat_id].categories[selected_category]:
+
+                    result = parse_category(
+                        users[chat_id].selected_shop,
+                        users[chat_id].categories[selected_category][category]
+                        )
+                    row = record_data(
+                        users[chat_id].selected_shop,
+                        result, workbook, worksheet, category, row
+                    )
+                workbook.close()
                 file = open(f'{file_name}', 'rb') # if python >= 3.8
                 update.effective_chat.bot.send_document(
                     chat_id=chat_id,
@@ -208,7 +134,6 @@ def get_text(update: Update, context: CallbackContext):
                 # users[chat_id].start_parse = True
                 users[chat_id].selected_sub_category = text_data
                 file_name = init_file_name(users[chat_id])
-                users[chat_id].selected_sub_category = False
                 
                 update.effective_chat.send_message(
                     text='Проше не тыкать ничего. Сейчас я не просто думаю, ' + 
@@ -217,100 +142,18 @@ def get_text(update: Update, context: CallbackContext):
                             'Всё потом. Зато многопоточка' ,
                     reply_markup=ReplyKeyboardRemove()
                 )
-                
-                if users[chat_id].selected_shop == 'FAMILY BOARDSHOP':
-                    result = parse_category(
+                result = parse_category(
                         users[chat_id].selected_shop,
                         users[chat_id].categories[users[chat_id].selected_category][text_data]
                         )
-                    workbook = xlsxwriter.Workbook(file_name)
-                    worksheet = workbook.add_worksheet()
-                    worksheet.set_column(0, 5, 25)
-                    worksheet.write(0, 0, 'Title')
-                    worksheet.write(0, 1, 'Current price')
-                    worksheet.write(0, 2, 'Old price')
-                    worksheet.write(0, 3, 'Size/Sex')
-                    worksheet.write(0, 4, 'Page url')
-                    row = 1
-                    col = 0
-                    for record in result:
-                        # record[0] - title
-                        # record[1] - prices. Can contain old and new or only current price
-                        # record[2] - page_url
-                        if record:
-                            worksheet.write(row, col, record[0])
-                            if len(record[1]) == 2:
-                                worksheet.write(row, col + 1, record[1][0])
-                                worksheet.write(row, col + 2, record[1][1])
-                            else:
-                                worksheet.write(row, col + 1, record[1][0])
-                            worksheet.write(row, col + 4, record[2])
-                            row += 1
-                    workbook.close()
-                elif users[chat_id].selected_shop == 'Dominant':
-                    result = parse_category(
-                        users[chat_id].selected_shop,
-                        users[chat_id].categories[users[chat_id].selected_category][text_data]
-                        )
-                    workbook = xlsxwriter.Workbook(file_name)
-                    worksheet = workbook.add_worksheet()
-                    worksheet.set_column(0, 5, 25)
-                    worksheet.write(0, 0, 'Title')
-                    worksheet.write(0, 1, 'Current price')
-                    worksheet.write(0, 2, 'Old price')
-                    worksheet.write(0, 3, 'Size/Sex')
-                    worksheet.write(0, 4, 'Page url')
-                    row = 1
-                    col = 0
-                    for record in result:
-                        for size in record[-2]:
-                            worksheet.write(row, col, record[0]) # title
-                            worksheet.write(row, col + 1, record[1]) # current price
-                            worksheet.write(row, col + 2, record[2]) # old price 
-                            worksheet.write(row, col + 3, size) # size
-                            worksheet.write(row, col + 4, record[-1]) # url
-                            row += 1
-                    workbook.close()
-
-                elif users[chat_id].selected_shop == 'Rollershop':
-                    result = parse_category(
-                        users[chat_id].selected_shop,
-                        users[chat_id].categories[users[chat_id].selected_category][text_data]
-                        )
-                    workbook = xlsxwriter.Workbook(file_name)
-                    worksheet = workbook.add_worksheet()
-                    worksheet.set_column(0, 5, 25)
-                    worksheet.write(0, 0, 'Title')
-                    worksheet.write(0, 1, 'Current price')
-                    worksheet.write(0, 2, 'Old price')
-                    worksheet.write(0, 3, 'Size/Sex')
-                    worksheet.write(0, 4, 'Page url')
-                    row = 1
-                    col = 0
-                
-                    for record in result:
-                        
-                        if len(record) == 4:
-                            for size in record[2]:
-                                if size != '--- Выберите ---' and len(record) > 1:
-                                    worksheet.write(row, col, record[0]) # title
-                                    worksheet.write(row, col + 1, record[1]) # price
-                                    worksheet.write(row, col + 3, size) # size
-                                    worksheet.write(row, col + 4, record[3]) # link
-                                    row += 1
-                        else:
-                            worksheet.write(row, col, record[0]) # title
-                            worksheet.write(row, col + 1, record[1]) # price
-                            # worksheet.write(row, col + 3, record[2]) # size
-                            worksheet.write(row, col + 4, record[2]) # link
-                            row += 1
-                                    
-                    workbook.close()
+                workbook, worksheet = create_exel_file(file_name)
+                record_data(
+                    users[chat_id].selected_shop,
+                    result, workbook, worksheet, users[chat_id].selected_sub_category, 1
+                )
+                workbook.close()
                 users[chat_id].start_parse = False
-                
-                
-
-               
+                users[chat_id].selected_sub_category = False
                 file = open(f'{file_name}', 'rb') # if python >= 3.8
                 update.effective_chat.bot.send_document(
                     chat_id=chat_id,
@@ -331,11 +174,11 @@ def get_text(update: Update, context: CallbackContext):
 
 @debug_requests
 def main():
-    for i in shops.keys():
-        try:
-            os.mkdir(i)
-        except:
-            pass
+    # for i in shops.keys():
+    #     try:
+    #         os.mkdir(i)
+    #     except:
+    #         pass
     request = Request(
         connect_timeout=0.5,
         read_timeout=1.0,
