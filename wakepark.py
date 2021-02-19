@@ -43,6 +43,7 @@ def get_categories_pool(i):
         titles = [i.text.strip() for i in sub_result] # get titles of categories
         return (category_name, dict(zip(titles, links_to_subcategories)))
 
+
 def wakepark_categories(page_doc):
     result = dict()
     categories = page_doc.find_all("a", class_="nav-link dropdown-toggle text-uppercase font-weight-bold")
@@ -54,6 +55,7 @@ def wakepark_categories(page_doc):
     for i in sub_result:
         result[i[0]] = i[1]
     return result
+
 
 def parse_containers(container):
     link = container.find('a').get('href')
