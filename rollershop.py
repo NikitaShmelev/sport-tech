@@ -29,7 +29,7 @@ def get_products_links_pollershop(url):
     return result
 
 
-def parse_category_rollershop(url, result=list()):
+def parse_category_rollershop(url, category, result=list()):
     pages_links = get_products_links_pollershop(url)
     for link in enumerate(pages_links):
         page_doc = get_page_doc_rollershop(link[1])
@@ -37,12 +37,12 @@ def parse_category_rollershop(url, result=list()):
         price = float(page_doc.find('span', itemprop='price').text.strip().replace(' руб.', ''))
         sizes = [i.text.strip() for i in page_doc.find_all('option')]
         if sizes:
-            result.append([title, price, sizes, link[1]])
+            result.append([category, title, price, sizes, link[1]])
         else:
-            result.append([title, price, link[1]])
-        try:
-            os.system('clear')
-        except:
-            os.system('cls')
+            result.append([category, title, price, link[1]])
+        # try:
+        #     os.system('clear')
+        # except:
+        #     os.system('cls')
         print(f'{link[0]*100/len(pages_links)}%')
     return result

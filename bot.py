@@ -115,12 +115,14 @@ def get_text(update: Update, context: CallbackContext):
 
                     result = parse_category(
                         users[chat_id].selected_shop,
-                        users[chat_id].categories[selected_category][category]
+                        users[chat_id].categories[selected_category][category],
+                        category
                         )
                     row = record_data(
                         users[chat_id].selected_shop,
                         result, workbook, worksheet, category, row
                     )
+
                 workbook.close()
                 file = open(f'{file_name}', 'rb') # if python >= 3.8
                 update.effective_chat.bot.send_document(
@@ -142,18 +144,30 @@ def get_text(update: Update, context: CallbackContext):
                             'Всё потом. Зато многопоточка' ,
                     reply_markup=ReplyKeyboardRemove()
                 )
-                result = parse_category(
+                print(users[chat_id].categories[users[chat_id].selected_category][text_data])
+                
+                
+                users[chat_id].result = None
+                users[chat_id].result = parse_category(
                         users[chat_id].selected_shop,
-                        users[chat_id].categories[users[chat_id].selected_category][text_data]
+                        users[chat_id].categories[users[chat_id].selected_category][text_data],
+                        users[chat_id].selected_sub_category
                         )
+                # print(result)
                 workbook, worksheet = create_exel_file(file_name)
-                record_data(
+
+                row = record_data(
                     users[chat_id].selected_shop,
-                    result, workbook, worksheet, users[chat_id].selected_sub_category, 1
+                    users[chat_id].result, workbook, worksheet, 
+                    users[chat_id].selected_sub_category, 1
                 )
                 workbook.close()
+
+
+                del workbook, worksheet
                 users[chat_id].start_parse = False
                 users[chat_id].selected_sub_category = False
+                users[chat_id].result = None
                 file = open(f'{file_name}', 'rb') # if python >= 3.8
                 update.effective_chat.bot.send_document(
                     chat_id=chat_id,

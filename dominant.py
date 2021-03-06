@@ -46,12 +46,12 @@ def parse_with_pool(url):
     except:
         sizes = (None, )
     # print([title, current_price, old_price, sizes, url[1]])
-    return [title, current_price, old_price, sizes, url[1]]
+    return [title, current_price, old_price, sizes, url]
         
     
 
 
-def parse_category_dominant(url, sub_result=list()):
+def parse_category_dominant(url, category, sub_result=list()):
     pages_links = [url]
     page_doc = get_page_doc(url)
     div = page_doc.find('div', class_='module-pagination')
@@ -68,6 +68,8 @@ def parse_category_dominant(url, sub_result=list()):
         all_links += item_links
     with Pool(5) as p:
         sub_result += p.map(parse_with_pool, (all_links))
+    p.close()
+    p.join()
     print(len(sub_result))
     result = list()
     result = [item for item in sub_result if item not in result]

@@ -6,6 +6,7 @@ class User():
         self.start_parse = False
         self.selected_category = None
         self.selected_sub_category = None
+        self.result = None
 
 shops = {
         'Dominant': 'https://dominant.by/',

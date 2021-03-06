@@ -35,7 +35,7 @@ def make_folders(result, shop):
 
 
 
-def get_categories(page_doc, shop, result=dict()):
+def get_categories(page_doc, shop):
     if shop == 'FAMILY BOARDSHOP':
         result = wakepark_categories(page_doc)    
     elif shop == 'Rollershop':
@@ -56,14 +56,14 @@ def get_page_doc_rollershop(url):
 
 
 
-def parse_category(shop, url, result = list()):
+def parse_category(shop, url, category):
 
     if shop == 'FAMILY BOARDSHOP':
-        result = parse_category_wakepark(url)
+        result = parse_category_wakepark(url, category)
 
     elif shop == 'Rollershop':
-        result = parse_category_rollershop(url)
+        result = parse_category_rollershop(url, category)
         
     elif shop == 'Dominant':
-        result = parse_category_dominant(url)
+        result = parse_category_dominant(url, category)
     return result

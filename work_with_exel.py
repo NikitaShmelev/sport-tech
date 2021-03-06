@@ -31,8 +31,9 @@ def record_data(shop, data_for_record, workbook,
             # record[0] - title
             # record[1] - prices. Can contain old and new or only current price
             # record[2] - page_url
-            worksheet.write(row, col, selected_category) # category
+             # category
             if record:
+                worksheet.write(row, col, selected_category)
                 worksheet.write(row, col + 1, record[0]) # title
                 if len(record[1]) == 2:
                     worksheet.write(row, col + 2, record[1][0]) # current price
@@ -44,7 +45,7 @@ def record_data(shop, data_for_record, workbook,
         
     elif shop == 'Dominant':
         for record in data_for_record:
-            print(record)
+            print(selected_category, record)
             for size in record[-2]:
                 worksheet.write(row, col, selected_category) # category
                 worksheet.write(row, col + 1, record[0]) # title
@@ -54,24 +55,26 @@ def record_data(shop, data_for_record, workbook,
                 worksheet.write(row, col + 5, record[-1]) # url
                 row += 1
     elif shop == 'Rollershop':
-        for record in data_for_record: 
-                
-            if len(record) == 4:
-                for size in record[2]:
+        print(type(data_for_record))
+        for record in data_for_record:
+            # print(type(record), record)
+            if len(record) == 5:
+                for size in record[3]:
+                    # print(type(size), size)
                     if size != '--- Выберите ---' and len(record) > 1:
-                        worksheet.write(row, col, selected_category) # category  
-                        worksheet.write(row, col + 1, record[0]) # title
-                        worksheet.write(row, col + 2, record[1]) # price
+                        worksheet.write(row, col, record[0]) # category  
+                        worksheet.write(row, col + 1, record[1]) # title
+                        worksheet.write(row, col + 2, record[2]) # price
                         # add old price
                         worksheet.write(row, col + 4, size) # size
-                        worksheet.write(row, col + 5, record[3]) # link
+                        worksheet.write(row, col + 5, record[4]) # link
                         row += 1
             else:
-                worksheet.write(row, col, selected_category) # category  
-                worksheet.write(row, col + 1, record[0]) # title
-                worksheet.write(row, col + 2, record[1]) # price
+                worksheet.write(row, col, record[0]) # category  
+                worksheet.write(row, col + 1, record[1]) # title
+                worksheet.write(row, col + 2, record[2]) # price
                 # add old price 
                 # worksheet.write(row, col + 3, record[2]) # size
-                worksheet.write(row, col + 5, record[2]) # link
+                worksheet.write(row, col + 5, record[3]) # link
                 row += 1
     return row

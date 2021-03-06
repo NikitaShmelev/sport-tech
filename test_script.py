@@ -72,6 +72,7 @@ def get_categories(i):
 
 with Pool(10) as p:
     result = p.map(get_categories, categories)
+
 main_res = dict()
 for i in result:
     main_res[i[0]] = i[1]

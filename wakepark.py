@@ -67,7 +67,10 @@ def parse_containers(container):
             doc = get_page_doc(link)
         except:
             pass
-        prices = doc.find('div', class_='p-price h2').text.strip()
+        try:
+            prices = doc.find('div', class_='p-price h2').text.strip()
+        except:
+            return None
         prices = prices.split(' ')
         if len(prices) == 2:
             if 'BYN' not in prices[1]:
@@ -101,7 +104,7 @@ def parse_containers(container):
         return [title, [float(i[0:-1]) for i in prices], link]
 
 
-def parse_category_wakepark(url):
+def parse_category_wakepark(url, category):
     result = list()
     pages_links = get_pages_links_wakepark(url)
     containers = list()
@@ -110,6 +113,8 @@ def parse_category_wakepark(url):
         containers += page_doc.find_all("div", class_="border-0 rounded-0 h-100 product-card")
         with Pool(5) as p:
             result += p.map(parse_containers, (containers))
+        p.close()
+        p.join()
     print(len(result))
     time.sleep(1)
     return result
