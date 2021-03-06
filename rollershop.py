@@ -29,7 +29,8 @@ def get_products_links_pollershop(url):
     return result
 
 
-def parse_category_rollershop(url, category, result=list()):
+def parse_category_rollershop(url, category):
+    result = list()
     pages_links = get_products_links_pollershop(url)
     for link in enumerate(pages_links):
         page_doc = get_page_doc_rollershop(link[1])
