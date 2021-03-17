@@ -45,5 +45,5 @@ def parse_category_rollershop(url, category):
         #     os.system('clear')
         # except:
         #     os.system('cls')
-        print(f'{link[0]*100/len(pages_links)}%')
+        # print(f'{link[0]*100/len(pages_links)}%')
     return result

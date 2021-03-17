@@ -15,7 +15,7 @@ from debug_for_bot import debug_requests, load_config
 from keyboards_for_bot import available_shops_keyboard, available_categories_keyboard
 from some_data import shops, User
 from parsing import get_page_doc, get_categories, parse_category
-from work_with_exel import init_file_name, record_data, create_exel_file
+from work_with_exel import init_file_name, record_data, create_exel_file, create_folders, init_worksheet
 
 config = load_config(getLogger(__name__))
 users = dict()
@@ -106,21 +106,25 @@ def get_text(update: Update, context: CallbackContext):
                         'I will send result soonest as possible.',
                     reply_markup=ReplyKeyboardRemove()
                 )
+                # path = f'{users[chat_id].selected_shop/users[chat_id].selected_category}'
                 selected_category = users[chat_id].selected_category
                 file_name = f'{selected_category}(FULL)_{datetime.date.today()}.xlsx' # if python >= 3.8
                 start_time = time.time()
-                workbook, worksheet = create_exel_file(file_name)
-                row = 1
-                for category in users[chat_id].categories[selected_category]:
 
+                workbook = create_exel_file(file_name)
+
+                for category in users[chat_id].categories[selected_category]:
+                    compare = False
+                    # check files
                     result = parse_category(
                         users[chat_id].selected_shop,
                         users[chat_id].categories[selected_category][category],
                         category
                         )
-                    row = record_data(
+                    worksheet = init_worksheet(workbook, category)
+                    record_data(
                         users[chat_id].selected_shop,
-                        result, workbook, worksheet, category, row
+                        result, workbook, worksheet, category
                     )
 
                 workbook.close()
@@ -134,9 +138,17 @@ def get_text(update: Update, context: CallbackContext):
                 os.remove(file_name)
             elif text_data in users[chat_id].categories[users[chat_id].selected_category].keys():
                 # users[chat_id].start_parse = True
-                users[chat_id].selected_sub_category = text_data
-                file_name = init_file_name(users[chat_id])
                 
+                users[chat_id].selected_sub_category = text_data
+                keys = users[chat_id].categories[users[chat_id].selected_category].keys()
+                create_folders(users[chat_id].selected_shop, users[chat_id].selected_sub_category, keys)
+                
+                file_name = init_file_name(users[chat_id])
+                shop = users[chat_id].selected_shop
+                category = users[chat_id].selected_category
+                selected_sub_category = users[chat_id].selected_sub_category
+
+                # path = f'{shop}/{category}/{selected_sub_category}'
                 update.effective_chat.send_message(
                     text='Проше не тыкать ничего. Сейчас я не просто думаю, ' + 
                             'но ещё и среагировать могу. Не испытывайте судьбу плес.' +
@@ -154,12 +166,14 @@ def get_text(update: Update, context: CallbackContext):
                         users[chat_id].selected_sub_category
                         )
                 # print(result)
-                workbook, worksheet = create_exel_file(file_name)
+                print(file_name)
+                workbook = create_exel_file(file_name)
+                worksheet = init_worksheet(workbook, users[chat_id].selected_sub_category)
 
-                row = record_data(
+                record_data(
                     users[chat_id].selected_shop,
                     users[chat_id].result, workbook, worksheet, 
-                    users[chat_id].selected_sub_category, 1
+                    users[chat_id].selected_sub_category
                 )
                 workbook.close()
 
@@ -188,11 +202,11 @@ def get_text(update: Update, context: CallbackContext):
 
 @debug_requests
 def main():
-    # for i in shops.keys():
-    #     try:
-    #         os.mkdir(i)
-    #     except:
-    #         pass
+    for i in shops:
+        try:
+            os.mkdir(i)
+        except:
+            pass
     request = Request(
         connect_timeout=0.5,
         read_timeout=1.0,
