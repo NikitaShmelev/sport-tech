@@ -16,7 +16,7 @@ from keyboards_for_bot import available_shops_keyboard, available_categories_key
 from some_data import shops, User
 from parsing import get_page_doc, get_categories, parse_category
 from work_with_exel import init_file_name, record_data, create_exel_file, create_folders, init_worksheet, \
-    get_old_file, get_keys_and_values_from_file
+    get_old_file, get_keys_and_values_from_file, get_compared_file
 
 config = load_config(getLogger(__name__))
 users = dict()
@@ -143,13 +143,14 @@ def get_text(update: Update, context: CallbackContext):
                 users[chat_id].selected_sub_category = text_data
                 keys = users[chat_id].categories[users[chat_id].selected_category].keys()
                 create_folders(users[chat_id].selected_shop, users[chat_id].selected_sub_category, keys)
+                path = init_file_name(users[chat_id])
                 
-                # old_file = get_old_file(path=init_file_name(users[chat_id]))
-                # old_file = get_keys_and_values_from_file(old_file)
+                old_file = get_old_file(path)
+                old_file = get_keys_and_values_from_file(f'{path}/{old_file}') if old_file else False
 
                 
                 
-                file_name = init_file_name(users[chat_id]) + f'/{users[chat_id].selected_sub_category}.xlsx'
+                new_file = f'{path}/{users[chat_id].selected_sub_category}.xlsx'
                 
                 # path = f'{shop}/{category}/{selected_sub_category}'
                 update.effective_chat.send_message(
@@ -169,8 +170,8 @@ def get_text(update: Update, context: CallbackContext):
                         users[chat_id].selected_sub_category
                         )
                 # print(result)
-                print(file_name)
-                workbook = create_exel_file(file_name)
+                print(new_file)
+                workbook = create_exel_file(new_file)
                 worksheet = init_worksheet(workbook, users[chat_id].selected_sub_category)
 
                 record_data(
@@ -185,7 +186,11 @@ def get_text(update: Update, context: CallbackContext):
                 users[chat_id].start_parse = False
                 users[chat_id].selected_sub_category = False
                 users[chat_id].result = None
-                file = open(f'{file_name}', 'rb') # if python >= 3.8
+
+                if old_file:
+                    compared_file = get_compared_file(old_file=old_file, new_file=new_file)
+
+                file = open(f'{new_file}', 'rb') # if python >= 3.8
                 update.effective_chat.bot.send_document(
                     chat_id=chat_id,
                     document=file,

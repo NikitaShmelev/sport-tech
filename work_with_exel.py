@@ -1,6 +1,7 @@
 import datetime
 import os
 import xlsxwriter
+from openpyxl import load_workbook
 
 def __create__(name):
     try:
@@ -112,8 +113,32 @@ def record_data(shop, data_for_record, workbook,
 
 
 def get_old_file(path):
-    return os.listdir(path)[0]
+    files_list = os.listdir(path)
+    if len(files_list):
+        return files_list[0]
+    else:
+        return False
 
 
 def get_keys_and_values_from_file(file_name):
-    pass
+    wb = load_workbook(file_name)
+    ws = wb.active
+    result = dict()
+    for row in ws.iter_rows():
+        sub_res = list()
+        for cell in row:
+            if cell.value == 'Category':
+                break
+            else:
+                sub_res.append(cell.value)
+        else:
+            result[sub_res[0]] = dict(key=sub_res[1], value=sub_res[2:3])
+            print(f'{result[sub_res[0]]}')
+    return result
+
+
+def get_compared_file(old_file, new_file):
+    new_file_dict = {
+        line[1]:line[2] for line in new_file 
+    }
+    print(new_file.keys())

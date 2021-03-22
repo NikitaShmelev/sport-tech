@@ -33,7 +33,10 @@ def parse_category_rollershop(url, category):
     result = list()
     pages_links = get_products_links_pollershop(url)
     for link in enumerate(pages_links):
-        page_doc = get_page_doc_rollershop(link[1])
+        if len(link) > 1:
+            page_doc = get_page_doc_rollershop(link[1])
+        else:
+            page_doc = get_page_doc_rollershop(link)
         title = page_doc.find('h1', itemprop='name').text.strip()
         current_price = float(page_doc.find('span', itemprop='price').text.strip().replace(' руб.', ''))
         try:
