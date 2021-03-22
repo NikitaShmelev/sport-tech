@@ -15,7 +15,8 @@ from debug_for_bot import debug_requests, load_config
 from keyboards_for_bot import available_shops_keyboard, available_categories_keyboard
 from some_data import shops, User
 from parsing import get_page_doc, get_categories, parse_category
-from work_with_exel import init_file_name, record_data, create_exel_file, create_folders, init_worksheet
+from work_with_exel import init_file_name, record_data, create_exel_file, create_folders, init_worksheet, \
+    get_old_file, get_keys_and_values_from_file
 
 config = load_config(getLogger(__name__))
 users = dict()
@@ -108,9 +109,9 @@ def get_text(update: Update, context: CallbackContext):
                 )
                 # path = f'{users[chat_id].selected_shop/users[chat_id].selected_category}'
                 selected_category = users[chat_id].selected_category
-                file_name = f'{selected_category}(FULL)_{datetime.date.today()}.xlsx' # if python >= 3.8
+                file_name = init_file_name(users[chat_id]) + 'ALL_CATEGORY.xlsx' # if python >= 3.8
                 start_time = time.time()
-
+                create_folders(users[chat_id].selected_shop, users[chat_id].selected_category, False)
                 workbook = create_exel_file(file_name)
 
                 for category in users[chat_id].categories[selected_category]:
@@ -135,7 +136,7 @@ def get_text(update: Update, context: CallbackContext):
                     reply_markup=available_categories_keyboard(users[chat_id].categories, True if users[chat_id].selected_category else False),
                 )
                 file.close()
-                os.remove(file_name)
+                # os.remove(file_name)
             elif text_data in users[chat_id].categories[users[chat_id].selected_category].keys():
                 # users[chat_id].start_parse = True
                 
@@ -143,11 +144,13 @@ def get_text(update: Update, context: CallbackContext):
                 keys = users[chat_id].categories[users[chat_id].selected_category].keys()
                 create_folders(users[chat_id].selected_shop, users[chat_id].selected_sub_category, keys)
                 
-                file_name = init_file_name(users[chat_id])
-                shop = users[chat_id].selected_shop
-                category = users[chat_id].selected_category
-                selected_sub_category = users[chat_id].selected_sub_category
+                # old_file = get_old_file(path=init_file_name(users[chat_id]))
+                # old_file = get_keys_and_values_from_file(old_file)
 
+                
+                
+                file_name = init_file_name(users[chat_id]) + f'/{users[chat_id].selected_sub_category}.xlsx'
+                
                 # path = f'{shop}/{category}/{selected_sub_category}'
                 update.effective_chat.send_message(
                     text='Проше не тыкать ничего. Сейчас я не просто думаю, ' + 
@@ -189,7 +192,7 @@ def get_text(update: Update, context: CallbackContext):
                     reply_markup=available_categories_keyboard(users[chat_id].categories, True if users[chat_id].selected_category else False),
                 )
                 file.close()
-                os.remove(file_name)
+                # os.remove(file_name)
                 print(time.time() - start_time, 'result time')
             else:
                 return do_start(update, context)

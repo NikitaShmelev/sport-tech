@@ -12,14 +12,15 @@ def __create__(name):
 def create_folders(shop, category, keys):
     __create__(f'{shop}/{category}')
     __create__(f'{shop}/{category}/ALL')
-    for folder_name in keys:
-        __create__(f'{shop}/{category}/{folder_name}')
+    if keys:
+        for folder_name in keys:
+            __create__(f'{shop}/{category}/{folder_name}')
 
     
 
 
 def init_file_name(user):
-    file_name = f'{user.selected_shop}/{user.selected_category}/{user.selected_sub_category}.xlsx'
+    file_name = f'{user.selected_shop}/{user.selected_category}/{user.selected_sub_category}'
     return file_name
 
 
@@ -43,7 +44,7 @@ def init_worksheet(workbook, sheet_name, compare=False):
     
     worksheet.write(0, 4, 'Size/Sex')
     worksheet.write(0, 5, 'Page url')
-    worksheet.write(0, 6, datetime.date.today())
+    worksheet.write(0, 6, str(datetime.date.today()))
     
     return worksheet
 
@@ -91,8 +92,11 @@ def record_data(shop, data_for_record, workbook,
                     if size != '--- Выберите ---' and len(record) > 1:
                         worksheet.write(row, col, record[0]) # category  
                         worksheet.write(row, col + 1, record[1]) # title
-                        worksheet.write(row, col + 2, record[2]) # price
-                        # add old price
+                        if record[2][1]:
+                            worksheet.write(row, col + 2, record[2][0]) # current_price
+                            worksheet.write(row, col + 3, record[2][1]) # current_price
+                        else:
+                            worksheet.write(row, col + 2, record[2][0]) # current_price
                         worksheet.write(row, col + 4, size) # size
                         worksheet.write(row, col + 5, record[4]) # link
                         row += 1
@@ -105,3 +109,11 @@ def record_data(shop, data_for_record, workbook,
                 worksheet.write(row, col + 5, record[3]) # link
                 row += 1
     # return row
+
+
+def get_old_file(path):
+    return os.listdir(path)[0]
+
+
+def get_keys_and_values_from_file(file_name):
+    pass
