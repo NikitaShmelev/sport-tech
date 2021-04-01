@@ -33,28 +33,28 @@ def create_exel_file(file_name):
 def init_worksheet(workbook, sheet_name, compare=False):
     worksheet = workbook.add_worksheet(sheet_name)
     worksheet.set_column(0, 5, 25)
-    worksheet.write(0, 0, 'Category')
-    worksheet.write(0, 1, 'Title')
+    worksheet.write(1, 0, 'Category')
+    worksheet.write(1, 1, 'Title')
     
     if compare:
-        worksheet.write(0, 2, 'Current price') # ADD DATE
-        worksheet.write(0, 3, 'Old price')   
+        worksheet.write(1, 2, 'Current price') # ADD DATE
+        worksheet.write(1, 3, 'Old price')   
     else:
-        worksheet.write(0, 2, 'Current price')
-        worksheet.write(0, 3, 'Old price')   
+        worksheet.write(1, 3, 'Current price')
+        worksheet.write(1, 2, 'Old price')   
     
-    worksheet.write(0, 4, 'Size/Sex')
-    worksheet.write(0, 5, 'Page url')
-    worksheet.write(0, 6, str(datetime.date.today()))
+    worksheet.write(1, 4, 'Size/Sex')
+    worksheet.write(1, 5, 'Page url')
+    worksheet.write(0, 2, str(datetime.date.today()))
     
     return worksheet
 
 
 def record_data(shop, data_for_record, workbook, 
-                worksheet, selected_category):
+                worksheet, selected_category, row=2, col=0):
     print(selected_category)
-    row = 1
-    col = 0
+    # row = 2
+    # col = 0
     if shop == 'FAMILY BOARDSHOP':
         for record in data_for_record:
             # record[0] - title
@@ -65,8 +65,8 @@ def record_data(shop, data_for_record, workbook,
                 worksheet.write(row, col, selected_category)
                 worksheet.write(row, col + 1, record[0]) # title
                 if len(record[1]) == 2:
-                    worksheet.write(row, col + 2, record[1][0]) # current price
-                    worksheet.write(row, col + 3, record[1][1]) # old price 
+                    worksheet.write(row, col + 3, record[1][0]) # current price
+                    worksheet.write(row, col + 2, record[1][1]) # old price 
                 else:
                     worksheet.write(row, col + 2, record[1][0])
                 worksheet.write(row, col + 5, record[2]) # url
@@ -78,8 +78,8 @@ def record_data(shop, data_for_record, workbook,
             for size in record[-2]:
                 worksheet.write(row, col, selected_category) # category
                 worksheet.write(row, col + 1, record[0]) # title
-                worksheet.write(row, col + 2, record[1]) # current price
-                worksheet.write(row, col + 3, record[2]) # old price 
+                worksheet.write(row, col + 3, record[1]) # current price
+                worksheet.write(row, col + 2, record[2]) # old price 
                 worksheet.write(row, col + 4, size) # size
                 worksheet.write(row, col + 5, record[-1]) # url
                 row += 1
@@ -91,25 +91,25 @@ def record_data(shop, data_for_record, workbook,
                 for size in record[3]:
                     # print(type(size), size)
                     if size != '--- Выберите ---' and len(record) > 1:
-                        worksheet.write(row, col, record[0]) # category  
+                        worksheet.write(row, 0, record[0]) # category  
                         worksheet.write(row, col + 1, record[1]) # title
                         if record[2][1]:
-                            worksheet.write(row, col + 2, record[2][0]) # current_price
-                            worksheet.write(row, col + 3, record[2][1]) # current_price
+                            worksheet.write(row, col + 3, record[2][0]) # current_price
+                            worksheet.write(row, col + 2, record[2][1]) # current_price
                         else:
-                            worksheet.write(row, col + 2, record[2][0]) # current_price
+                            worksheet.write(row, col + 3, record[2][0]) # current_price
                         worksheet.write(row, col + 4, size) # size
                         worksheet.write(row, col + 5, record[4]) # link
                         row += 1
             else:
                 worksheet.write(row, col, record[0]) # category  
                 worksheet.write(row, col + 1, record[1]) # title
-                worksheet.write(row, col + 2, record[2]) # price
+                worksheet.write(row, col + 3, record[2]) # price
                 # add old price 
                 # worksheet.write(row, col + 3, record[2]) # size
                 worksheet.write(row, col + 5, record[3]) # link
                 row += 1
-    # return row
+    return row
 
 
 def get_old_file(path):
@@ -142,3 +142,7 @@ def get_compared_file(old_file, new_file):
         line[1]:line[2] for line in new_file 
     }
     print(new_file.keys())
+
+
+def get_column_for_prices(path):
+    pass

@@ -16,7 +16,7 @@ from keyboards_for_bot import available_shops_keyboard, available_categories_key
 from some_data import shops, User
 from parsing import get_page_doc, get_categories, parse_category
 from work_with_exel import init_file_name, record_data, create_exel_file, create_folders, init_worksheet, \
-    get_old_file, get_keys_and_values_from_file, get_compared_file
+    get_old_file, get_keys_and_values_from_file, get_compared_file, get_column_for_prices
 
 config = load_config(getLogger(__name__))
 users = dict()
@@ -113,7 +113,8 @@ def get_text(update: Update, context: CallbackContext):
                 start_time = time.time()
                 create_folders(users[chat_id].selected_shop, users[chat_id].selected_category, False)
                 workbook = create_exel_file(file_name)
-
+                worksheet = init_worksheet(workbook, users[chat_id].selected_category)
+                row = 2
                 for category in users[chat_id].categories[selected_category]:
                     compare = False
                     # check files
@@ -122,10 +123,10 @@ def get_text(update: Update, context: CallbackContext):
                         users[chat_id].categories[selected_category][category],
                         category
                         )
-                    worksheet = init_worksheet(workbook, category)
-                    record_data(
+                    # worksheet = init_worksheet(workbook, category)
+                    row = record_data(
                         users[chat_id].selected_shop,
-                        result, workbook, worksheet, category
+                        result, workbook, worksheet, category, row
                     )
 
                 workbook.close()
@@ -138,7 +139,6 @@ def get_text(update: Update, context: CallbackContext):
                 file.close()
                 # os.remove(file_name)
             elif text_data in users[chat_id].categories[users[chat_id].selected_category].keys():
-                # users[chat_id].start_parse = True
                 
                 users[chat_id].selected_sub_category = text_data
                 keys = users[chat_id].categories[users[chat_id].selected_category].keys()
@@ -151,8 +151,9 @@ def get_text(update: Update, context: CallbackContext):
                 
                 
                 new_file = f'{path}/{users[chat_id].selected_sub_category}.xlsx'
-                
-                # path = f'{shop}/{category}/{selected_sub_category}'
+                # column = get_column_for_prices(get_old_file(path))
+
+
                 update.effective_chat.send_message(
                     text='Проше не тыкать ничего. Сейчас я не просто думаю, ' + 
                             'но ещё и среагировать могу. Не испытывайте судьбу плес.' +
@@ -160,7 +161,6 @@ def get_text(update: Update, context: CallbackContext):
                             'Всё потом. Зато многопоточка' ,
                     reply_markup=ReplyKeyboardRemove()
                 )
-                print(users[chat_id].categories[users[chat_id].selected_category][text_data])
                 
                 
                 users[chat_id].result = None
@@ -169,8 +169,6 @@ def get_text(update: Update, context: CallbackContext):
                         users[chat_id].categories[users[chat_id].selected_category][text_data],
                         users[chat_id].selected_sub_category
                         )
-                # print(result)
-                print(new_file)
                 workbook = create_exel_file(new_file)
                 worksheet = init_worksheet(workbook, users[chat_id].selected_sub_category)
 
@@ -187,8 +185,8 @@ def get_text(update: Update, context: CallbackContext):
                 users[chat_id].selected_sub_category = False
                 users[chat_id].result = None
 
-                if old_file:
-                    compared_file = get_compared_file(old_file=old_file, new_file=new_file)
+                # if old_file:
+                #     compared_file = get_compared_file(old_file=old_file, new_file=new_file)
 
                 file = open(f'{new_file}', 'rb') # if python >= 3.8
                 update.effective_chat.bot.send_document(
@@ -197,7 +195,6 @@ def get_text(update: Update, context: CallbackContext):
                     reply_markup=available_categories_keyboard(users[chat_id].categories, True if users[chat_id].selected_category else False),
                 )
                 file.close()
-                # os.remove(file_name)
                 print(time.time() - start_time, 'result time')
             else:
                 return do_start(update, context)
