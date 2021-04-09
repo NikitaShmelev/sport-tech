@@ -20,7 +20,7 @@ def get_column_for_prices(path):
     for row in enumerate(ws.iter_rows()):
         if row[0] == 1:
             for cell in enumerate(row[1]):
-                print(cell)
+                return (len(row[1]) - 1)
     #     sub_res = list()
     #     
     #         if cell.value == 'Category':

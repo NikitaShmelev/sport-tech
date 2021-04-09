@@ -57,13 +57,12 @@ def get_page_doc_rollershop(url):
 
 
 def parse_category(shop, url, category):
-
     if shop == 'FAMILY BOARDSHOP':
-        result = parse_category_wakepark(url, category)
 
+        return parse_category_wakepark(url, category)
     elif shop == 'Rollershop':
-        result = parse_category_rollershop(url, category)
-        
+
+        return parse_category_rollershop(url, category)  
     elif shop == 'Dominant':
-        result = parse_category_dominant(url, category)
-    return result
+        
+        return parse_category_dominant(url, category)

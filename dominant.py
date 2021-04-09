@@ -39,14 +39,14 @@ def parse_with_pool(url):
         current_price = current_price[0] + current_price[2:]
     else:
         current_price = current_price
-    old_price = 'пока не добывается :('#page_doc.find('div', class_='sale-number rounded2')#.text.strip()
+    old_price = ':('#page_doc.find('div', class_='sale-number rounded2')#.text.strip()
 
     try:
         sizes = [i.text.strip() for i in page_doc.find('div', class_='bx_size').find_all('span', class_='cnt')]
     except:
         sizes = (None, )
     # print([title, current_price, old_price, sizes, url[1]])
-    return [title, current_price, old_price, sizes, url]
+    return [title, [current_price, old_price], sizes, url]
         
     
 

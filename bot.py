@@ -9,6 +9,7 @@ import datetime
 import os
 from logging import getLogger
 import time
+import openpyxl
 
 from bot_token.bot_token import bot_token
 from debug_for_bot import debug_requests, load_config
@@ -16,7 +17,9 @@ from keyboards_for_bot import available_shops_keyboard, available_categories_key
 from some_data import shops, User
 from parsing import get_page_doc, get_categories, parse_category
 from work_with_exel import init_file_name, record_data, create_exel_file, create_folders, init_worksheet, \
-    get_old_file, get_keys_and_values_from_file, get_compared_file, get_column_for_prices
+    get_old_file, get_keys_and_values_from_file, get_compared_file, get_last_colunm_index, add_prices_worksheets, record_prices, \
+    record_old_data
+from compare import get_indexes_for_record
 
 config = load_config(getLogger(__name__))
 users = dict()
@@ -138,7 +141,7 @@ def get_text(update: Update, context: CallbackContext):
                 )
                 file.close()
                 # os.remove(file_name)
-            elif text_data in users[chat_id].categories[users[chat_id].selected_category].keys():
+            elif users[chat_id].selected_category and text_data in users[chat_id].categories[users[chat_id].selected_category].keys():
                 
                 users[chat_id].selected_sub_category = text_data
                 keys = users[chat_id].categories[users[chat_id].selected_category].keys()
@@ -146,10 +149,12 @@ def get_text(update: Update, context: CallbackContext):
                 path = init_file_name(users[chat_id])
                 
                 old_file = get_old_file(path)
-                old_file = get_keys_and_values_from_file(f'{path}/{old_file}') if old_file else False
+                print(old_file, path)
+                old_file_values = get_keys_and_values_from_file(f'{path}/{old_file}') if old_file else False
 
-                
-                
+                # for key in old_file_values.keys():
+                #     print(key, old_file_values[key])
+                # print(old_file_values.keys())
                 new_file = f'{path}/{users[chat_id].selected_sub_category}.xlsx'
                 # column = get_column_for_prices(get_old_file(path))
 
@@ -169,18 +174,35 @@ def get_text(update: Update, context: CallbackContext):
                         users[chat_id].categories[users[chat_id].selected_category][text_data],
                         users[chat_id].selected_sub_category
                         )
-                workbook = create_exel_file(new_file)
-                worksheet = init_worksheet(workbook, users[chat_id].selected_sub_category)
+                
+                if old_file_values:
+                    
+                    last_column = get_last_colunm_index(f'{path}/{old_file}')
+                    result, new_items = get_indexes_for_record(users[chat_id].result, old_file_values, users[chat_id].selected_shop)
 
-                record_data(
-                    users[chat_id].selected_shop,
-                    users[chat_id].result, workbook, worksheet, 
-                    users[chat_id].selected_sub_category
-                )
-                workbook.close()
+                    workbook = create_exel_file(new_file)
+                    worksheet = init_worksheet(workbook, users[chat_id].selected_sub_category)
+                    workbook, worksheet = add_prices_worksheets(workbook, worksheet, last_column)
+
+                    row = record_old_data(workbook, worksheet, old_file_values)
+                    
+                    record_prices(workbook, worksheet, result, last_column, users[chat_id].selected_shop)
+                    print(new_items, 'new_items')
+                    workbook.close()
+                    del workbook, worksheet, last_column 
+                else:
+                    workbook = create_exel_file(new_file)
+                    worksheet = init_worksheet(workbook, users[chat_id].selected_sub_category)
+
+                    record_data( 
+                        users[chat_id].selected_shop,
+                        users[chat_id].result, workbook, worksheet, 
+                        users[chat_id].selected_sub_category
+                    ) # first record
+                    workbook.close()
 
 
-                del workbook, worksheet
+                    del workbook, worksheet
                 users[chat_id].start_parse = False
                 users[chat_id].selected_sub_category = False
                 users[chat_id].result = None
