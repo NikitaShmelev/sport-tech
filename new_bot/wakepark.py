@@ -18,6 +18,7 @@ class Wakepark():
             'Реквизиты', 'Преимущества', 'Таблица размеров', 'Обратная связь',
             'Контакты', 'Регистрация', 'Авторизация', 'Показать все', 'Доставка и оплата'
             ]
+        self.current_category = None
 
     def get_page_doc(self, url=None):
         page_url = self.main_url if not url else url
@@ -50,3 +51,84 @@ class Wakepark():
             links_to_subcategories = [i.get('href') for i in sub_result]
             titles = [i.text.strip() for i in sub_result]
             return (category_name, dict(zip(titles, links_to_subcategories)))
+
+
+    def parse_category(self, url, category):
+        result = list()
+        pages_links = self.__get_pages_links__(url)
+        containers = list()
+        self.current_category = category
+        for link in pages_links:
+            page_doc = self.get_page_doc(link)
+            containers += page_doc.find_all("div", class_="border-0 rounded-0 h-100 product-card")
+            with Pool(5) as p:
+                result += p.map(self.__parse_containers__, (containers))
+            p.close()
+            p.join()
+        return result
+
+    def __get_pages_links__(self, url):
+        page_doc = self.get_page_doc(url)
+        pages_links = [
+            i.find_all('a') for i in page_doc.find_all("ul", class_="pagination")
+            ]
+        result = list()
+        result.append(url)
+        for i in pages_links:
+            for j in i:
+                result.append(j.get('href'))
+        result = list(dict.fromkeys(result))
+        return result
+
+
+    def __parse_containers__(self, container):
+        link = container.find('a').get('href')
+        title = container.find('img').get('alt').strip()
+        if title != 'Скидочная карта SHOP.WAKEPARK.BY':
+            try:
+                doc = self.get_page_doc(link)
+            except:
+                pass
+            try:
+                prices = doc.find('div', class_='p-price h2').text.strip()
+            except:
+                return None
+            prices = prices.split(' ')
+            if len(prices) == 2:
+                if 'BYN' not in prices[1]:
+                    prices[0] = prices[0].replace('BYN', '') + prices[1]
+                    del prices[1]
+                else:
+                    prices[0] = prices[0].replace('BYN', '')
+                    del prices[1]
+            elif len(prices) == 3:
+                for i in prices:
+                    if '\xa0\xa0' in i:
+                        prices[1] = prices[1].replace("\t", "").replace("\n", "").replace('\xa0\xa0','').replace('BYN','')
+                        del prices[2]
+                        break
+                else:
+                    prices[0] += prices[1]
+                    del prices[1]
+                    del prices[1]    
+            elif len(prices) == 4:
+                prices[1] = prices[1].replace("\t", "").replace("\n", "").replace('\xa0\xa0','').replace('BYN','') + prices[2]
+                del prices[2]
+                del prices[2]
+            else:
+                prices[0] += prices[1]
+                prices[2] = prices[2].replace("\t", "").replace("\n", "").replace('\xa0\xa0','').replace('BYN','') + prices[3]
+                del prices[1]
+                del prices[3]
+                del prices[2]
+            print(title, prices, link)
+            dict_for_return = {
+                'category': self.current_category,
+                'title': title,
+                'current_price': float(prices[0]),
+                'old_price': float(prices[1]),
+                'sizes': None,
+                'url' :link,
+                'other_values': list(),
+            }
+            return dict_for_return

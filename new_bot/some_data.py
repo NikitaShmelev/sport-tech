@@ -1,7 +1,7 @@
 from dominant import Dominant
 from rollershop import Rollershop
 from wakepark import Wakepark
-
+from darsi import Darsi
 
 class User():
     def __init__(self, chat_id=None):
@@ -17,4 +17,5 @@ shops = {
         'Dominant': Dominant(),
         'FAMILY BOARDSHOP': Wakepark(),
         'Rollershop': Rollershop(),
+        # 'Darsi': Darsi(),
     }

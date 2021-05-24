@@ -1,21 +1,15 @@
-import xlsxwriter
+import time
+import os
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
-from telegram import ReplyKeyboardRemove, Bot, Update
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
+from telegram import Bot, Update
 from telegram.utils.request import Request
-
-import datetime
-import os
 from logging import getLogger
-import time
-import openpyxl
 
 from bot_token import bot_token
 from debug_for_bot import debug_requests, load_config
 from keyboards_for_bot import available_shops_keyboard, available_categories_keyboard, back_button_logic
 from some_data import shops, User
-
 from parsing import Parsing
 
 config = load_config(getLogger(__name__))
@@ -65,11 +59,22 @@ def get_text(update: Update, context: CallbackContext):
             elif text_data == 'BACK':
                 users[chat_id] = back_button_logic(users[chat_id], update)
             elif text_data in users[chat_id].categories.keys():
-                pass
+                # if users[chat_id].selected_shop == 'Darsi':
+                #     users[chat_id] = shops[users[chat_id].selected_shop].parse_category(
+                #         users[chat_id].categories[text_data], text_data
+                #     )
+                # else:
+                users[chat_id].selected_category = text_data
+                users[chat_id].selected_sub_category = True
+                update.effective_chat.send_message(
+                    text='Select something',
+                    reply_markup=available_categories_keyboard(users[chat_id].categories[text_data], True if users[chat_id].selected_category else False),
+                )
             elif text_data == 'ALL CATEGORY':
                 pass
             elif users[chat_id].selected_category and text_data in users[chat_id].categories[users[chat_id].selected_category].keys():
-                pass
+                users[chat_id].selected_sub_category = text_data
+                users[chat_id] = parsing.parse_logic(shops[users[chat_id].selected_shop], users[chat_id], update)
             else:
                 return do_start(update, context)
         else:
