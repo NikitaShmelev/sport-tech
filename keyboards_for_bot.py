@@ -1,5 +1,4 @@
 from telegram import KeyboardButton, ReplyKeyboardMarkup
-from parsing import get_page_doc
 from some_data import shops
 
 
@@ -34,3 +33,28 @@ def available_categories_keyboard(categories, check_choice):
         keyboard=keyboard,
         resize_keyboard=True,
     )
+
+
+def back_button_logic(user, update):
+    if user.selected_sub_category:
+        user.selected_sub_category = False
+        user.selected_category = None
+        update.effective_chat.send_message(
+            text='Select category',
+            reply_markup=available_categories_keyboard(
+                        user.categories, True if user.selected_category else False
+                        )
+        )
+    elif user.selected_category:
+        user.selected_category = None
+        update.effective_chat.send_message(
+            text='Select shop',
+            reply_markup=available_shops_keyboard()
+            )
+    elif not user.selected_category and user.selected_shop:
+        user.selected_shop = None
+        update.effective_chat.send_message(
+            text='Select shop',
+            reply_markup=available_shops_keyboard()
+        )
+    return user
