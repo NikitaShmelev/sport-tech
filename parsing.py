@@ -20,14 +20,16 @@ class Parsing():
     def __create_filename__(self, user, ALL=False):
         keys = user.categories[user.selected_category].keys()
         self.__create_folders__(user.selected_shop, user.selected_category, keys)
-        path = Exel_Work().init_file_name(user)
-        new_file = f'{path}/{user.selected_sub_category}.xlsx'
+        new_file = Exel_Work().init_file_name(user, ALL)
+    
+        # new_file = f'{path}/{user.selected_sub_category}.xlsx'
         return new_file
     
 
     def parse_logic(self, shop_obj, user, update):
         update.effective_chat.send_message(
-                    text='Prosze poczekać!' ,
+                    text='Prosze poczekać! Душу "' 
+                          f'{user.selected_sub_category}"' ,
                     reply_markup=ReplyKeyboardRemove()
                 )
         user.result = shop_obj.parse_category(
@@ -36,11 +38,11 @@ class Parsing():
             )
         return user
     
-    def file_logic(self, user, update):
+    def file_logic(self, user, update, ALL=False):
         
-        new_file = self.__create_filename__(user)
+        new_file = self.__create_filename__(user, ALL)
         workbook = Exel_Work().create_exel_file(new_file)
-        worksheet = Exel_Work().init_worksheet(workbook, user.selected_sub_category)
+        worksheet = Exel_Work().init_worksheet(workbook, user.selected_sub_category, compare=False, ALL=True)
 
         workbook, worksheet = Exel_Work().record_data( 
             user.result, workbook, worksheet, 

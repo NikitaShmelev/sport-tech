@@ -6,9 +6,11 @@ from openpyxl import load_workbook
 class Exel_Work():
 
 
-    def init_file_name(self, user):
-        file_name = f'{user.selected_shop}/{user.selected_category}/{user.selected_sub_category}'
-        return file_name
+    def init_file_name(self, user, ALL=False):
+        if ALL:
+            return f'{user.selected_shop}/{user.selected_category}/ALL/category_result.xlsx'
+        else:
+            return f'{user.selected_shop}/{user.selected_category}/{user.selected_sub_category}/{user.selected_sub_category}.xlsx'
 
 
     def get_old_file(self, path):
@@ -25,10 +27,10 @@ class Exel_Work():
         return workbook
 
 
-    def init_worksheet(self, workbook, sheet_name, compare=False):
+    def init_worksheet(self, workbook, sheet_name, compare=False, ALL=False):
         if len(sheet_name) > 31:
             sheet_name = sheet_name[0:30]
-        worksheet = workbook.add_worksheet(sheet_name)
+        worksheet = workbook.add_worksheet('category_result' if ALL else sheet_name)
         worksheet.set_column(0, 10, 25)
         worksheet.write(1, 0, 'Category')
         worksheet.write(1, 1, 'Title')

@@ -59,11 +59,6 @@ def get_text(update: Update, context: CallbackContext):
             elif text_data == 'BACK':
                 users[chat_id] = back_button_logic(users[chat_id], update)
             elif text_data in users[chat_id].categories.keys():
-                # if users[chat_id].selected_shop == 'Darsi':
-                #     users[chat_id] = shops[users[chat_id].selected_shop].parse_category(
-                #         users[chat_id].categories[text_data], text_data
-                #     )
-                # else:
                 users[chat_id].selected_category = text_data
                 users[chat_id].selected_sub_category = True
                 update.effective_chat.send_message(
@@ -71,7 +66,21 @@ def get_text(update: Update, context: CallbackContext):
                     reply_markup=available_categories_keyboard(users[chat_id].categories[text_data], True if users[chat_id].selected_category else False),
                 )
             elif text_data == 'ALL CATEGORY':
-                pass
+                data_for_record = list()
+                for caterory in users[chat_id].categories[users[chat_id].selected_category]:
+                    users[chat_id].selected_sub_category = caterory
+                    print(users[chat_id].selected_category, users[chat_id].selected_sub_category)
+                    # a = input('sadsad')
+                    users[chat_id] = parsing.parse_logic(
+                                                shops[users[chat_id].selected_shop], 
+                                                users[chat_id], 
+                                                update
+                                    )
+                    data_for_record += users[chat_id].result
+                users[chat_id].result = data_for_record
+                parsing.file_logic(users[chat_id], update, ALL=True)
+                users[chat_id].__init__(chat_id=users[chat_id].chat_id)
+                    
             elif users[chat_id].selected_category and text_data in users[chat_id].categories[users[chat_id].selected_category].keys():
                 users[chat_id].selected_sub_category = text_data
                 users[chat_id] = parsing.parse_logic(shops[users[chat_id].selected_shop], users[chat_id], update)
